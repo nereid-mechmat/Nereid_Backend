@@ -5,8 +5,8 @@ export const jwtDataGetters = {
 		const { userId } = jwt.decode(jwtToken.replace(/Bearer */, '')) as { userId: number };
 		return userId;
 	},
-	getEmail: (jwtToken: string): string => {
-		const { email } = jwt.decode(jwtToken.replace(/Bearer */, '')) as { email: string };
-		return email;
+	getRoleName: (jwtToken: string): string => {
+		const { roleName } = jwt.decode(jwtToken.replace(/Bearer */, '')) as { roleName: string };
+		return roleName;
 	},
 };

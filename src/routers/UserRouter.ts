@@ -1,4 +1,4 @@
-import type { Context} from 'hono';
+import type { Context } from 'hono';
 import { Hono } from 'hono';
 import userController from '../controllers/UserController.ts';
 import { authenticate } from '../middlewares/Authentication.ts';
@@ -6,7 +6,7 @@ import { authenticate } from '../middlewares/Authentication.ts';
 export const userRouter = new Hono();
 
 userRouter.get('/healthy', (c: Context) => {
-    return c.text("healthy", 200);
+	return c.text('healthy', 200);
 });
 
 userRouter.post('/sign-up', userController.sendOtp);

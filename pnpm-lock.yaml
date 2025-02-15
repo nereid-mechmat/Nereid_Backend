@@ -14,6 +14,12 @@ importers:
       bcrypt:
         specifier: ^5.1.1
         version: 5.1.1
+      dotenv:
+        specifier: ^16.4.7
+        version: 16.4.7
+      drizzle-orm:
+        specifier: ^0.39.2
+        version: 0.39.2(@types/pg@8.11.10)(pg@8.13.1)
       hono:
         specifier: ^4.6.10
         version: 4.6.10
@@ -23,6 +29,9 @@ importers:
       nodemailer:
         specifier: ^6.9.16
         version: 6.9.16
+      pg:
+        specifier: ^8.13.1
+        version: 8.13.1
     devDependencies:
       '@types/bcrypt':
         specifier: ^5.0.2
@@ -48,18 +57,15 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^6.7.3
         version: 6.21.0(eslint@8.57.1)(typescript@5.6.3)
-      dotenv:
-        specifier: ^16.4.5
-        version: 16.4.5
       dprint:
         specifier: ^0.46.2
         version: 0.46.3
       drizzle-kit:
         specifier: ^0.28.1
         version: 0.28.1
-      drizzle-orm:
-        specifier: ^0.36.0
-        version: 0.36.3(@types/pg@8.11.10)(pg@8.13.1)
+      drizzle-seed:
+        specifier: ^0.3.1
+        version: 0.3.1(drizzle-orm@0.39.2(@types/pg@8.11.10)(pg@8.13.1))
       eslint:
         specifier: ^8.50.0
         version: 8.57.1
@@ -75,9 +81,6 @@ importers:
       eslint-plugin-unused-imports:
         specifier: ^3.0.0
         version: 3.2.0(@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.6.3))(eslint@8.57.1)(typescript@5.6.3))(eslint@8.57.1)
-      pg:
-        specifier: ^8.13.1
-        version: 8.13.1
       tsx:
         specifier: ^4.19.2
         version: 4.19.2
@@ -931,8 +934,8 @@ packages:
     resolution: {integrity: sha512-yS+Q5i3hBf7GBkd4KG8a7eBNNWNGLTaEwwYWUijIYM7zrlYDM0BFXHjjPWlWZ1Rg7UaddZeIDmi9jF3HmqiQ2w==}
     engines: {node: '>=6.0.0'}
 
-  dotenv@16.4.5:
-    resolution: {integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==}
+  dotenv@16.4.7:
+    resolution: {integrity: sha512-47qPchRCykZC03FhkYAhrvwU4xDBFIj1QPqaarj6mdM/hgUzfPHcpkHJOn3mJAufFeeAxAzeGsr5X0M4k6fLZQ==}
     engines: {node: '>=12'}
 
   dprint@0.46.3:
@@ -943,15 +946,15 @@ packages:
     resolution: {integrity: sha512-JimOV+ystXTWMgZkLHYHf2w3oS28hxiH1FR0dkmJLc7GHzdGJoJAQtQS5DRppnabsRZwE2U1F6CuezVBgmsBBQ==}
     hasBin: true
 
-  drizzle-orm@0.36.3:
-    resolution: {integrity: sha512-ffQB7CcyCTvQBK6xtRLMl/Jsd5xFTBs+UTHrgs1hbk68i5TPkbsoCPbKEwiEsQZfq2I7VH632XJpV1g7LS2H9Q==}
+  drizzle-orm@0.39.2:
+    resolution: {integrity: sha512-cuopo+udkKEGGpSxCML9ZRQ43R01zYCTsbqCrb9kJkabx1QEwFlPIFoQfx6E6tuawtiX930Gwyrkwj4inlpzDg==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
-      '@cloudflare/workers-types': '>=3'
+      '@cloudflare/workers-types': '>=4'
       '@electric-sql/pglite': '>=0.2.0'
       '@libsql/client': '>=0.10.0'
       '@libsql/client-wasm': '>=0.10.0'
-      '@neondatabase/serverless': '>=0.1'
+      '@neondatabase/serverless': '>=0.10.0'
       '@op-engineering/op-sqlite': '>=2'
       '@opentelemetry/api': ^1.4.1
       '@planetscale/database': '>=1'
@@ -1033,6 +1036,14 @@ packages:
       sql.js:
         optional: true
       sqlite3:
+        optional: true
+
+  drizzle-seed@0.3.1:
+    resolution: {integrity: sha512-F/0lgvfOAsqlYoHM/QAGut4xXIOXoE5VoAdv2FIl7DpGYVXlAzKuJO+IphkKUFK3Dz+rFlOsQLnMNrvoQ0cx7g==}
+    peerDependencies:
+      drizzle-orm: '>=0.36.4'
+    peerDependenciesMeta:
+      drizzle-orm:
         optional: true
 
   ecdsa-sig-formatter@1.0.11:
@@ -1814,6 +1825,9 @@ packages:
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
+
+  pure-rand@6.1.0:
+    resolution: {integrity: sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA==}
 
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
@@ -2813,7 +2827,7 @@ snapshots:
     dependencies:
       esutils: 2.0.3
 
-  dotenv@16.4.5: {}
+  dotenv@16.4.7: {}
 
   dprint@0.46.3:
     optionalDependencies:
@@ -2834,10 +2848,16 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.36.3(@types/pg@8.11.10)(pg@8.13.1):
+  drizzle-orm@0.39.2(@types/pg@8.11.10)(pg@8.13.1):
     optionalDependencies:
       '@types/pg': 8.11.10
       pg: 8.13.1
+
+  drizzle-seed@0.3.1(drizzle-orm@0.39.2(@types/pg@8.11.10)(pg@8.13.1)):
+    dependencies:
+      pure-rand: 6.1.0
+    optionalDependencies:
+      drizzle-orm: 0.39.2(@types/pg@8.11.10)(pg@8.13.1)
 
   ecdsa-sig-formatter@1.0.11:
     dependencies:
@@ -3757,6 +3777,8 @@ snapshots:
   prelude-ls@1.2.1: {}
 
   punycode@2.3.1: {}
+
+  pure-rand@6.1.0: {}
 
   queue-microtask@1.2.3: {}
 

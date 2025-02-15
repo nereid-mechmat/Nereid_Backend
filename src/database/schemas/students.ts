@@ -6,6 +6,6 @@ export const students = pgTable('students', {
 	userId: integer().notNull().references(() => users.id),
 	year: varchar({ length: 255 }).notNull(),
 	group: varchar({ length: 255 }).notNull(),
-	isActive: boolean(),
-	canSelect: boolean(),
+	isActive: boolean().default(true),
+	canSelect: boolean().default(false),
 });

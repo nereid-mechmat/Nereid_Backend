@@ -1,7 +1,7 @@
+import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import userRep from '../database/repositories/UserRep.ts';
-import bcrypt from "bcrypt";
 
 const { GMAIL_MAILER_HOST, GMAIL_MAILER_PORT, GMAIL_MAILER_USERNAME, GMAIL_MAILER_PASSWORD } = process.env;
 const transporter = nodemailer.createTransport({
@@ -15,9 +15,33 @@ const transporter = nodemailer.createTransport({
 	},
 });
 
-class UserService {
+export class UserService {
+	public static onStartUp = async () => {
+		const allRoles = [
+			{ id: 0, name: 'admin' },
+			{ id: 1, name: 'teacher' },
+			{ id: 2, name: 'student' },
+		];
+		const stringifiedRoles = new Set(allRoles.map((role) => JSON.stringify(role)));
+
+		const roles = await userRep.getAllRoles();
+		if (
+			roles.length === 0
+			|| !roles.every((role) => stringifiedRoles.has(JSON.stringify(role)))
+		) {
+			await userRep.deleteAllRoles();
+			await userRep.addRoles(allRoles);
+		}
+	};
+
 	generateOtp = () => {
-		const otp = String(Math.min(Math.floor(100000 + Math.random() * 900000), 999999));
+		const possibleCharacters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+		const otpLength = 6;
+		let otp = '';
+		for (let i = 0; i < otpLength; i++) {
+			const idx = Math.floor(Math.random() * possibleCharacters.length);
+			otp += possibleCharacters[idx];
+		}
 
 		// expressed in seconds
 		const OTP_TTL = Number(process.env['OTP_TTL']);
@@ -52,7 +76,7 @@ class UserService {
 			return { userExists: false };
 		}
 
-		const { id, otp, otpExpiredTimestamp } = user;
+		const { id, otp, otpExpiredTimestamp, roleName } = user;
 
 		if (otp !== null && otpExpiredTimestamp !== null) {
 			const now = new Date();
@@ -66,6 +90,7 @@ class UserService {
 					const token = jwt.sign(
 						{
 							userId: id,
+							roleName,
 						},
 						JWT_SECRET,
 						{ expiresIn: ttl },
@@ -108,14 +133,15 @@ class UserService {
 			const token = jwt.sign(
 				{
 					userId: user.id,
+					roleName: user.roleName,
 				},
 				JWT_SECRET,
 				{ expiresIn: ttl },
 			);
 
 			const {
-                otp: _1,
-                otpExpiredTimestamp: _2,
+				otp: _1,
+				otpExpiredTimestamp: _2,
 				password: _3,
 				...filteredUser
 			} = user;
@@ -145,18 +171,17 @@ class UserService {
 		return { userExists: true, user: filteredUser };
 	};
 
-    changePassword = async (userId: number, password: string) => {
-        const saltRounds = Number(process.env['SALT_ROUNDS']);
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
+	changePassword = async (userId: number, password: string) => {
+		const saltRounds = Number(process.env['SALT_ROUNDS']);
+		const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        const user = await userRep.changeUserById(userId, {password: hashedPassword});
-        if (user === undefined) {
-            return {userExists: false};
-        }
+		const user = await userRep.changeUserById(userId, { password: hashedPassword });
+		if (user === undefined) {
+			return { userExists: false };
+		}
 
-        return {userExists: true};
-    
-    }
+		return { userExists: true };
+	};
 }
 
 export default new UserService();

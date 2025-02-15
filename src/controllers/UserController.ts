@@ -5,22 +5,23 @@ import { jwtDataGetters } from '../utils.ts';
 class UserController {
 	logIn = async (c: Context) => {
 		const body = await c.req.json();
-        const { email, password } = body;
+		const { email, password } = body;
 
-        const { userExists, isPasswordValid, token, user } = await userService.logIn(email, password);
-        if (userExists === false) {
-            c.status(400);
-            return c.json({ message: "user with this email does not exist." });
-        }
-        if (isPasswordValid === false) {
-            c.status(400);
-            return c.json({ message: "password is invalid." });
-        }
-        
-        c.status(200);
-        return c.json({ message: "user was successfully logged in.", token, user });
+		const { userExists, isPasswordValid, token, user } = await userService.logIn(email, password);
+		if (userExists === false) {
+			c.status(400);
+			return c.json({ message: 'user with this email does not exist.' });
+		}
+		if (isPasswordValid === false) {
+			c.status(400);
+			return c.json({ message: 'password is invalid.' });
+		}
+
+		c.status(200);
+		return c.json({ message: 'user was successfully logged in.', token, user });
 	};
 
+	// also sign up
 	sendOtp = async (c: Context) => {
 		const body = await c.req.json();
 
@@ -63,37 +64,36 @@ class UserController {
 		return c.json({ message: 'otp was not sent.' });
 	};
 
-    getUser = async (c: Context) => {
-        const token = c.req.header("authorization");
-        const userId = jwtDataGetters.getUserId(token!);
+	getUser = async (c: Context) => {
+		const token = c.req.header('authorization');
+		const userId = jwtDataGetters.getUserId(token!);
 
-        const {userExists, user} = await userService.getUser(userId);
+		const { userExists, user } = await userService.getUser(userId);
 
-        if (userExists === true) {
-            c.status(200);
-            return c.json({user});
-        }
+		if (userExists === true) {
+			c.status(200);
+			return c.json({ user });
+		}
 
-        c.status(400);
-        return c.json({message: "user does not exist in out database."});
+		c.status(400);
+		return c.json({ message: 'user does not exist in out database.' });
+	};
 
-    }
-
-    changePassword = async (c: Context) => {
-        const body = await c.req.json();
+	changePassword = async (c: Context) => {
+		const body = await c.req.json();
 		const { password } = body;
-        const token = c.req.header("authorization");
-        const userId = jwtDataGetters.getUserId(token!);
+		const token = c.req.header('authorization');
+		const userId = jwtDataGetters.getUserId(token!);
 
-        const {userExists} = await userService.changePassword(userId, password);
-        if (userExists === true) {
-            c.status(200);
-            return c.json({message: "password was successfully changed."});
-        }
+		const { userExists } = await userService.changePassword(userId, password);
+		if (userExists === true) {
+			c.status(200);
+			return c.json({ message: 'password was successfully changed.' });
+		}
 
-        c.status(400);
-        return c.json({message: "user does not exist in out database."});
-    }
+		c.status(400);
+		return c.json({ message: 'user does not exist in out database.' });
+	};
 }
 
 export default new UserController();

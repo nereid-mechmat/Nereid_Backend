@@ -4,5 +4,5 @@ import { users } from './users.ts';
 export const teachers = pgTable('teachers', {
 	id: integer().primaryKey().generatedAlwaysAsIdentity(),
 	userId: integer().notNull().references(() => users.id),
-	isActive: boolean(),
+	isActive: boolean().default(true),
 });
