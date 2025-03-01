@@ -10,22 +10,6 @@ class UserRep {
 		this.db = dbClient;
 	}
 
-	getAllRoles = async () => {
-		const result = await this.db
-			.select()
-			.from(roles);
-
-		return result;
-	};
-
-	deleteAllRoles = async () => {
-		await this.db.delete(roles);
-	};
-
-	addRoles = async (rolesToAdd: (typeof roles.$inferInsert)[]) => {
-		await this.db.insert(roles).values(rolesToAdd);
-	};
-
 	getUserById = async (userId: number) => {
 		const result = await this.db
 			.select()
@@ -33,6 +17,14 @@ class UserRep {
 			.where(eq(users.id, userId));
 
 		return result[0];
+	};
+
+	addUser = async (user: typeof users.$inferInsert) => {
+		return await this.db
+			.insert(users)
+			.values(user)
+			.returning({ id: users.id })
+			.then((rows) => rows[0]!);
 	};
 
 	getUserByEmail = async (email: string) => {
@@ -56,14 +48,11 @@ class UserRep {
 		return result[0];
 	};
 
-	changeUserById = async (userId: number, user: Partial<typeof users.$inferInsert>) => {
-		const result = await this.db
+	editUserById = async (userId: number, user: Partial<typeof users.$inferInsert>) => {
+		await this.db
 			.update(users)
 			.set(user)
-			.where(eq(users.id, userId))
-			.returning();
-
-		return result[0];
+			.where(eq(users.id, userId));
 	};
 }
 

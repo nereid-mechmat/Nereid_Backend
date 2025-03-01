@@ -9,6 +9,9 @@ adminRouter.get('/healthy', (c: Context) => {
 	return c.text('healthy', 200);
 });
 
+adminRouter.get('/get', authenticate, adminValidation, adminController.getAdminByUserId);
+adminRouter.patch('/edit', authenticate, adminValidation, adminController.editAdminByUserId);
+
 adminRouter.get('/get-all-students', authenticate, adminValidation, adminController.getAllStudents);
 adminRouter.post('/add-student', authenticate, adminValidation, adminController.addStudent);
 adminRouter.patch('edit-student', authenticate, adminValidation, adminController.editStudent);

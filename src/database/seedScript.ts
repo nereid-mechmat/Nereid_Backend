@@ -27,8 +27,13 @@ const main = async () => {
 		roles: {
 			count: 3,
 			columns: {
-				id: funcs.default({ defaultValue: null }),
 				name: funcs.valuesFromArray({ values: ['admin', 'teacher', 'student'] }),
+			},
+		},
+		users: {
+			columns: {
+				otp: funcs.default({ defaultValue: null }),
+				otpExpiredTimestamp: funcs.default({ defaultValue: null }),
 			},
 		},
 	}));

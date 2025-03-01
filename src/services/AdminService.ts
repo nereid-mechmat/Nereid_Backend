@@ -1,12 +1,36 @@
 import bcrypt from 'bcrypt';
 import { randomBytes } from 'node:crypto';
 import disciplineRep from '~/database/repositories/DisciplineRep.ts';
+import roleRep from '~/database/repositories/RoleRep.ts';
 import teacherDisciplineRelationRep from '~/database/repositories/teacherDisciplineRelationRep.ts';
 import userRep from '~/database/repositories/UserRep.ts';
 import studentRep from '../database/repositories/StudentRep.ts';
 import teacherRep from '../database/repositories/TeacherRep.ts';
 
 export class AdminService {
+	getAdminByUserId = async (userId: number) => {
+		const user = await userRep.getUserById(userId);
+		if (user === undefined) {
+			return { userExists: false };
+		}
+
+		return {
+			email: user.email,
+			firstName: user.firstName,
+			lastName: user.lastName,
+			patronymic: user.patronymic,
+		};
+	};
+
+	editAdminByUserId = async (userId: number, admin: {
+		email?: string;
+		firstName?: string;
+		lastName?: string;
+		patronymic?: string;
+	}) => {
+		await userRep.editUserById(userId, admin);
+	};
+
 	getAllStudents = async (filters?: {
 		email?: string;
 		firstName?: string;
@@ -33,9 +57,19 @@ export class AdminService {
 		const randomPassword = randomBytes(20).toString('hex');
 		const hashedPassword = await bcrypt.hash(randomPassword, saltRounds);
 
-		await studentRep.addStudent({
-			...student,
+		const { id: roleId } = (await roleRep.getRoleByName('student'))!;
+		const { id: userId } = await userRep.addUser({
+			email: student.email,
+			firstName: student.firstName,
+			lastName: student.lastName,
+			patronymic: student.patronymic,
 			password: hashedPassword,
+			roleId,
+		});
+
+		await studentRep.addStudent({
+			userId,
+			...student,
 		});
 	};
 
@@ -61,7 +95,7 @@ export class AdminService {
 			|| student.lastName !== undefined
 			|| student.patronymic !== undefined
 		) {
-			await userRep.changeUserById(currStudent.userId, {
+			await userRep.editUserById(currStudent.userId, {
 				email: student.email,
 				firstName: student.firstName,
 				lastName: student.lastName,
@@ -69,7 +103,7 @@ export class AdminService {
 			});
 		}
 
-		await studentRep.changeStudentById(currStudent.id, {
+		await studentRep.editStudentById(currStudent.id, {
 			group: student.group,
 			year: student.year,
 			isActive: student.isActive,
@@ -102,9 +136,18 @@ export class AdminService {
 		const randomPassword = randomBytes(20).toString('hex');
 		const hashedPassword = await bcrypt.hash(randomPassword, saltRounds);
 
-		await teacherRep.addTeacher({
-			...teacher,
+		const { id: roleId } = (await roleRep.getRoleByName('teacher'))!;
+		const { id: userId } = await userRep.addUser({
+			email: teacher.email,
+			firstName: teacher.firstName,
+			lastName: teacher.lastName,
+			patronymic: teacher.patronymic,
 			password: hashedPassword,
+			roleId,
+		});
+
+		await teacherRep.addTeacher({
+			userId,
 		});
 	};
 
@@ -127,7 +170,7 @@ export class AdminService {
 			|| teacher.lastName !== undefined
 			|| teacher.patronymic !== undefined
 		) {
-			await userRep.changeUserById(currTeacher.userId, {
+			await userRep.editUserById(currTeacher.userId, {
 				email: teacher.email,
 				firstName: teacher.firstName,
 				lastName: teacher.lastName,
@@ -135,7 +178,7 @@ export class AdminService {
 			});
 		}
 
-		await teacherRep.changeTeacherById(currTeacher.id, {
+		await teacherRep.editTeacherById(currTeacher.id, {
 			isActive: teacher.isActive,
 		});
 		return {

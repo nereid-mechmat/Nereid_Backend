@@ -17,20 +17,19 @@ const transporter = nodemailer.createTransport({
 
 export class UserService {
 	public static onStartUp = async () => {
-		const allRoles = [
-			{ id: 0, name: 'admin' },
-			{ id: 1, name: 'teacher' },
-			{ id: 2, name: 'student' },
-		];
-		const stringifiedRoles = new Set(allRoles.map((role) => JSON.stringify(role)));
+		const allRoles = ['admin', 'teacher', 'student'];
 
 		const roles = await userRep.getAllRoles();
+		const uniqueRoles = new Set(roles.map((val) => val.name));
 		if (
-			roles.length === 0
-			|| !roles.every((role) => stringifiedRoles.has(JSON.stringify(role)))
+			uniqueRoles.size === 0
+			|| allRoles.every((role) => uniqueRoles.has(role))
 		) {
 			await userRep.deleteAllRoles();
-			await userRep.addRoles(allRoles);
+			await userRep.addRoles(allRoles.map((roleName, index) => ({
+				id: index,
+				name: roleName,
+			})));
 		}
 	};
 
@@ -57,7 +56,7 @@ export class UserService {
 			return { userExists: false };
 		} else {
 			const { otp, otpExpiredTimestamp, OTP_TTL } = this.generateOtp();
-			await userRep.changeUserById(user.id, { otp, otpExpiredTimestamp });
+			await userRep.editUserById(user.id, { otp, otpExpiredTimestamp });
 
 			await transporter.sendMail({
 				from: { name: 'Nereid', address: `${GMAIL_MAILER_USERNAME}` },
@@ -82,7 +81,7 @@ export class UserService {
 			const now = new Date();
 			if (now <= otpExpiredTimestamp) {
 				if (submittedOtp === otp) {
-					await userRep.changeUserById(id, { otp: null, otpExpiredTimestamp: null });
+					await userRep.editUserById(id, { otp: null, otpExpiredTimestamp: null });
 
 					const ttl = Number(process.env['JWT_TTL']);
 					const JWT_SECRET = String(process.env['JWT_SECRET']);
@@ -175,12 +174,19 @@ export class UserService {
 		const saltRounds = Number(process.env['SALT_ROUNDS']);
 		const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-		const user = await userRep.changeUserById(userId, { password: hashedPassword });
-		if (user === undefined) {
-			return { userExists: false };
-		}
+		await userRep.editUserById(userId, { password: hashedPassword });
+	};
 
-		return { userExists: true };
+	changeUser = async (
+		userId: number,
+		body: {
+			email: string;
+			firstName: string;
+			lastName: string;
+			patronymic: string;
+		},
+	) => {
+		await userRep.editUserById(userId, body);
 	};
 }
 
