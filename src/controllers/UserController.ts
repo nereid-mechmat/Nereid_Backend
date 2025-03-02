@@ -87,12 +87,10 @@ class UserController {
 
 		const { userExists } = await userService.changePassword(userId, password);
 		if (userExists === true) {
-			c.status(200);
-			return c.json({ message: 'password was successfully changed.' });
+			return c.json({ message: 'password was successfully changed.' }, 200);
 		}
 
-		c.status(400);
-		return c.json({ message: 'user does not exist in out database.' });
+		return c.json({ message: 'user does not exist in our database.' }, 400);
 	};
 }
 

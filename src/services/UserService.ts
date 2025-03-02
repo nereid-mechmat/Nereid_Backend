@@ -16,23 +16,6 @@ const transporter = nodemailer.createTransport({
 });
 
 export class UserService {
-	public static onStartUp = async () => {
-		const allRoles = ['admin', 'teacher', 'student'];
-
-		const roles = await userRep.getAllRoles();
-		const uniqueRoles = new Set(roles.map((val) => val.name));
-		if (
-			uniqueRoles.size === 0
-			|| allRoles.every((role) => uniqueRoles.has(role))
-		) {
-			await userRep.deleteAllRoles();
-			await userRep.addRoles(allRoles.map((roleName, index) => ({
-				id: index,
-				name: roleName,
-			})));
-		}
-	};
-
 	generateOtp = () => {
 		const possibleCharacters = 'abcdefghijklmnopqrstuvwxyz0123456789';
 		const otpLength = 6;
@@ -171,10 +154,14 @@ export class UserService {
 	};
 
 	changePassword = async (userId: number, password: string) => {
+		const userToChange = await userRep.getUserById(userId);
+		if (userToChange === undefined) return { userExists: false };
+
 		const saltRounds = Number(process.env['SALT_ROUNDS']);
 		const hashedPassword = await bcrypt.hash(password, saltRounds);
 
 		await userRep.editUserById(userId, { password: hashedPassword });
+		return { userExists: true };
 	};
 
 	changeUser = async (
