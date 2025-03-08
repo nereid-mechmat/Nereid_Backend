@@ -26,6 +26,21 @@ export class StudentRep {
 			.select({
 				id: students.id,
 				userId: users.id,
+				isActive: students.isActive,
+			})
+			.from(students)
+			.innerJoin(users, eq(students.userId, users.id))
+			.where(eq(students.id, studentId))
+			.then((rows) => rows[0]);
+
+		return student;
+	};
+
+	getStudentByUserId = async (userId: number) => {
+		const student = await this.db
+			.select({
+				id: students.id,
+				userId: users.id,
 				firstName: users.firstName,
 				lastName: users.lastName,
 				patronymic: users.patronymic,
@@ -36,7 +51,7 @@ export class StudentRep {
 			})
 			.from(students)
 			.innerJoin(users, eq(students.userId, users.id))
-			.where(eq(students.id, studentId))
+			.where(eq(users.id, userId))
 			.then((rows) => rows[0]);
 
 		return student;
@@ -82,38 +97,22 @@ export class StudentRep {
 	};
 
 	addStudent = async (student: {
-		email: string;
-		firstName: string;
-		lastName: string;
-		patronymic: string;
+		userId: number;
 		group: string;
 		year: string;
-		password: string;
 	}) => {
-		const { userId } = await this.db
-			.insert(users)
-			.values({
-				email: student.email,
-				firstName: student.firstName,
-				lastName: student.lastName,
-				patronymic: student.patronymic,
-				password: student.password,
-			})
-			.returning({ userId: users.id })
-			.then((rows) => rows[0]!);
-
 		await this.db
 			.insert(students)
 			.values(
 				{
-					userId,
+					userId: student.userId,
 					group: student.group,
 					year: student.year,
 				},
 			);
 	};
 
-	changeStudentById = async (studentId: number, student: {
+	editStudentById = async (studentId: number, student: {
 		group?: string;
 		year?: string;
 		isActive?: boolean;

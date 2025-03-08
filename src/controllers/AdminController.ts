@@ -1,7 +1,33 @@
 import type { Context } from 'hono';
 import adminService from '../services/AdminService.ts';
+import { jwtDataGetters } from '../utils.ts';
 
 export class AdminController {
+	getAdminByUserId = async (c: Context) => {
+		const token = c.req.header('authorization');
+		const userId = jwtDataGetters.getUserId(token!);
+		const admin = await adminService.getAdminByUserId(userId);
+
+		if (admin.userExists === false) {
+			return c.json({ message: `admin with userId '${userId}' doesn't exist.` }, 401);
+		}
+
+		return c.json(admin, 200);
+	};
+
+	editAdminByUserId = async (c: Context) => {
+		const token = c.req.header('authorization');
+		const userId = jwtDataGetters.getUserId(token!);
+		const body = await c.req.json().catch(() => {}); // Prevent crash if JSON is empty
+		if (body === undefined) {
+			return c.json({ message: 'Empty request body' }, 400);
+		}
+
+		const { email, firstName, lastName, patronymic } = body;
+		await adminService.editAdminByUserId(userId, { email, firstName, lastName, patronymic });
+		return c.text('OK', 200);
+	};
+
 	getAllStudents = async (c: Context) => {
 		const body = await c.req.json().catch(() => ({})); // Prevent crash if JSON is empty
 		const { email, firstName, lastName, patronymic, group, year, isActive } = body;

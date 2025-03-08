@@ -2,6 +2,7 @@ import type { SQL } from 'drizzle-orm';
 import { and, eq } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { db } from '../databaseConnection.ts';
+import { teacherFields } from '../schemas/teacherFields.ts';
 import { teachers } from '../schemas/teachers.ts';
 import { users } from '../schemas/users.ts';
 
@@ -24,6 +25,20 @@ export class TeacherRep {
 			.select({
 				id: teachers.id,
 				userId: users.id,
+				isActive: teachers.isActive,
+			})
+			.from(teachers)
+			.where(eq(teachers.id, teacherId))
+			.then((rows) => rows[0]);
+
+		return teacher;
+	};
+
+	getTeacherByUserId = async (userId: number) => {
+		const teacher = await this.db
+			.select({
+				id: teachers.id,
+				userId: users.id,
 				firstName: users.firstName,
 				lastName: users.lastName,
 				patronymic: users.patronymic,
@@ -32,7 +47,7 @@ export class TeacherRep {
 			})
 			.from(teachers)
 			.innerJoin(users, eq(teachers.userId, users.id))
-			.where(eq(teachers.id, teacherId))
+			.where(eq(users.id, userId))
 			.then((rows) => rows[0]);
 
 		return teacher;
@@ -74,34 +89,16 @@ export class TeacherRep {
 	};
 
 	addTeacher = async (teacher: {
-		email: string;
-		firstName: string;
-		lastName: string;
-		patronymic: string;
-		password: string;
+		userId: number;
 	}) => {
-		const { userId } = await this.db
-			.insert(users)
-			.values({
-				email: teacher.email,
-				firstName: teacher.firstName,
-				lastName: teacher.lastName,
-				patronymic: teacher.patronymic,
-				password: teacher.password,
-			})
-			.returning({ userId: users.id })
-			.then((rows) => rows[0]!);
-
 		await this.db
 			.insert(teachers)
-			.values(
-				{
-					userId,
-				},
-			);
+			.values({
+				userId: teacher.userId,
+			});
 	};
 
-	changeTeacherById = async (teacherId: number, teacher: {
+	editTeacherById = async (teacherId: number, teacher: {
 		isActive?: boolean;
 	}) => {
 		await this.db
@@ -110,6 +107,43 @@ export class TeacherRep {
 				isActive: teacher.isActive,
 			})
 			.where(eq(teachers.id, teacherId));
+	};
+
+	getAllTeacherFields = async (teacherId: number) => {
+		const allTeacherFields = await this.db
+			.select({
+				id: teacherFields.id,
+				teacherId: teacherFields.teacherId,
+				name: teacherFields.name,
+				content: teacherFields.content,
+			})
+			.from(teachers)
+			.innerJoin(teacherFields, eq(teachers.id, teacherFields.teacherId))
+			.where(eq(teachers.id, teacherId));
+
+		return allTeacherFields;
+	};
+
+	addFieldToTeacher = async (
+		teacherId: number,
+		field: {
+			name: string;
+			content: string;
+		},
+	) => {
+		await this.db
+			.insert(teacherFields)
+			.values({
+				teacherId: teacherId,
+				name: field.name,
+				content: field.content,
+			});
+	};
+
+	deleteFieldFromTeacher = async (fieldId: number) => {
+		await this.db
+			.delete(teacherFields)
+			.where(eq(teacherFields.id, fieldId));
 	};
 }
 

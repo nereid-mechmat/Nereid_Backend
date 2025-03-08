@@ -4,7 +4,6 @@ import { cors } from 'hono/cors';
 import { prettyJSON } from 'hono/pretty-json';
 import { adminRouter } from './routers/AdminRouter.ts';
 import { userRouter } from './routers/UserRouter.ts';
-import { UserService } from './services/UserService.ts';
 
 const app = new Hono();
 
@@ -29,8 +28,6 @@ const port = 3000;
 console.log(`Server is running on http://localhost:${port}`);
 
 const main = async () => {
-	await UserService.onStartUp();
-
 	serve({
 		fetch: app.fetch,
 		port,
