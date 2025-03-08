@@ -221,7 +221,7 @@ export class AdminService {
 	};
 
 	releaseTeacherFromDiscipline = async (teacherId: number, disciplineId: number) => {
-		await teacherDisciplineRelationRep.releaseTeacherFromDiscipline(teacherId, disciplineId);
+		await teacherDisciplineRelationRep.deleteTeacherFromDiscipline(teacherId, disciplineId);
 	};
 }
 

@@ -18,6 +18,19 @@ export class DisciplineRep {
 		return allDisciplines;
 	};
 
+	getAllDisciplinesByTeacherId = async (teacherId: number) => {
+		const allDisciplines = await this.db
+			.select({
+				id: disciplines.id,
+				name: disciplines.name,
+				description: disciplines.description,
+			})
+			.from(disciplines)
+			.innerJoin(teacherDiscipleRelations, eq(disciplines.id, teacherDiscipleRelations.disciplineId))
+			.where(eq(teacherDiscipleRelations.teacherId, teacherId));
+		return allDisciplines;
+	};
+
 	getDisciplineById = async (disciplineId: number) => {
 		const discipline = await this.db
 			.select()

@@ -26,7 +26,7 @@ export class TeacherDisciplineRelationRep {
 		await this.db.insert(teacherDiscipleRelations).values({ teacherId, disciplineId });
 	};
 
-	releaseTeacherFromDiscipline = async (teacherId: number, disciplineId: number) => {
+	deleteTeacherFromDiscipline = async (teacherId: number, disciplineId: number) => {
 		await this.db
 			.delete(teacherDiscipleRelations)
 			.where(

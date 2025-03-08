@@ -137,6 +137,9 @@ export class AdminController {
 
 	getDisciplineById = async (c: Context) => {
 		const disciplineId = Number(c.req.param('id'));
+		if (Number.isNaN(disciplineId)) {
+			return c.json({ message: 'No disciplineId was provided.' }, 400);
+		}
 		const {
 			disciplineExists,
 			discipline,
@@ -170,6 +173,9 @@ export class AdminController {
 
 	deleteDiscipline = async (c: Context) => {
 		const disciplineId = Number(c.req.param('id'));
+		if (Number.isNaN(disciplineId)) {
+			return c.json({ message: 'No disciplineId was provided.' }, 400);
+		}
 
 		await adminService.deleteDiscipline(disciplineId);
 		return c.text('OK', 200);

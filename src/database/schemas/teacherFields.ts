@@ -3,7 +3,7 @@ import { teachers } from './teachers.ts';
 
 export const teacherFields = pgTable('teacher_fields', {
 	id: integer().primaryKey().generatedAlwaysAsIdentity(),
-	teacherId: integer().references(() => teachers.id),
+	teacherId: integer().references(() => teachers.id).notNull(),
 	name: varchar({ length: 255 }),
 	content: text(),
 }, (table) => ({

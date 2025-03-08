@@ -124,6 +124,10 @@ export class TeacherRep {
 		return allTeacherFields;
 	};
 
+	getFieldById = async (fieldId: number) => {
+		return await this.db.select().from(teacherFields).where(eq(teacherFields.id, fieldId)).then((rows) => rows[0]);
+	};
+
 	addFieldToTeacher = async (
 		teacherId: number,
 		field: {

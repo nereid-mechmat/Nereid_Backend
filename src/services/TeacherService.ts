@@ -1,4 +1,6 @@
+import teacherDisciplineRelationRep from '~/database/repositories/teacherDisciplineRelationRep.ts';
 import userRep from '~/database/repositories/UserRep.ts';
+import disciplineRep from '../database/repositories/DisciplineRep.ts';
 import teacherRep from '../database/repositories/TeacherRep.ts';
 
 export class TeacherService {
@@ -7,28 +9,25 @@ export class TeacherService {
 		if (teacher === undefined) {
 			return { teacherExists: false };
 		}
+
+		const allTeacherFields = await teacherRep.getAllTeacherFields(teacher.id);
 		return {
 			teacherExists: true,
 			teacher,
+			allTeacherFields,
 		};
 	};
 
 	editTeacherById = async (teacher: {
-		id: number;
-		userId: number;
+		teacherId: number;
 		email?: string;
 		firstName?: string;
 		lastName?: string;
 		patronymic?: string;
-		isActive?: boolean;
 	}) => {
-		const currTeacher = await teacherRep.getTeacherById(teacher.id);
+		const currTeacher = await teacherRep.getTeacherById(teacher.teacherId);
 		if (currTeacher === undefined) {
 			return { teacherExists: false };
-		}
-
-		if (currTeacher.userId !== teacher.userId) {
-			return { isOwner: false };
 		}
 
 		if (currTeacher.isActive === false) {
@@ -41,7 +40,7 @@ export class TeacherService {
 			|| teacher.lastName !== undefined
 			|| teacher.patronymic !== undefined
 		) {
-			await userRep.editUserById(teacher.userId, {
+			await userRep.editUserById(currTeacher.userId, {
 				email: teacher.email,
 				firstName: teacher.firstName,
 				lastName: teacher.lastName,
@@ -49,54 +48,119 @@ export class TeacherService {
 			});
 		}
 
-		if (
-			teacher.isActive !== undefined
-		) {
-			await teacherRep.editTeacherById(currTeacher.id, {
-				isActive: teacher.isActive,
-			});
-		}
-
 		return {
 			teacherExists: true,
-			isOwner: true,
 			isActive: true,
 		};
 	};
 
 	addFieldToTeacher = async (
-		teacher: {
-			id: number;
-			userId: number;
-		},
+		teacherId: number,
 		field: {
 			name: string;
 			content: string;
 		},
 	) => {
-		const currTeacher = await teacherRep.getTeacherById(teacher.id);
+		const currTeacher = await teacherRep.getTeacherById(teacherId);
 		if (currTeacher === undefined) {
 			return { teacherExists: false };
 		}
 
-		if (currTeacher.userId !== teacher.userId) {
-			return { isOwner: false };
+		// if (currTeacher.userId !== teacher.userId) {
+		// 	return { isOwner: false };
+		// }
+
+		if (currTeacher.isActive === false) {
+			return { isActive: false };
+		}
+
+		await teacherRep.addFieldToTeacher(teacherId, field);
+		return {
+			teacherExists: true,
+			// isOwner: true,
+			isActive: true,
+		};
+	};
+
+	deleteFieldFromTeacher = async (fieldId: number) => {
+		const field = await teacherRep.getFieldById(fieldId);
+
+		if (field === undefined) return { isExists: false };
+
+		const currTeacher = await teacherRep.getTeacherById(field.teacherId);
+		if (currTeacher === undefined) {
+			return { teacherExists: false };
 		}
 
 		if (currTeacher.isActive === false) {
 			return { isActive: false };
 		}
 
-		await teacherRep.addFieldToTeacher(teacher.id, field);
+		await teacherRep.deleteFieldFromTeacher(fieldId);
+		return { isExists: true, teacherExists: true, isActive: true, field };
+	};
+
+	getAllDisciplines = async () => {
+		const allDisciplines = await disciplineRep.getAllDisciplines();
+		return allDisciplines;
+	};
+
+	getAllTakenDisciplines = async (teacherId: number) => {
+		const allDisciplines = await disciplineRep.getAllDisciplinesByTeacherId(teacherId);
+		return allDisciplines;
+	};
+
+	getDisciplineById = async (disciplineId: number) => {
+		const discipline = await disciplineRep.getDisciplineById(disciplineId);
+		if (discipline === undefined) {
+			return { disciplineExists: false };
+		}
+
+		const disciplineFieldsPromise = disciplineRep.getAllDisciplineFields(disciplineId);
+		const disciplineTeachersPromise = disciplineRep.getAllDisciplineTeachers(disciplineId);
+		const [disciplineFields, disciplineTeachers] = await Promise.all([
+			disciplineFieldsPromise,
+			disciplineTeachersPromise,
+		]);
+
 		return {
-			teacherExists: true,
-			isOwner: true,
-			isActive: true,
+			disciplineExists: true,
+			discipline,
+			disciplineFields,
+			disciplineTeachers,
 		};
 	};
 
-	deleteFieldFromTeacher = async (fieldId: number) => {
-		await teacherRep.deleteFieldFromTeacher(fieldId);
+	takeDiscipline = async (teacherId: number, disciplineId: number) => {
+		const teacher = await teacherRep.getTeacherById(teacherId);
+		if (teacher === undefined) {
+			return { teacherExists: false };
+		}
+
+		const discipline = await disciplineRep.getDisciplineById(disciplineId);
+		if (discipline === undefined) {
+			return { disciplineExists: false };
+		}
+
+		await teacherDisciplineRelationRep.addTeacherToDiscipline(teacherId, disciplineId);
+
+		return { teacherExists: true, disciplineExists: true };
+	};
+
+	releaseDiscipline = async (teacherId: number, disciplineId: number) => {
+		const teacher = await teacherRep.getTeacherById(teacherId);
+		if (teacher === undefined) {
+			return { teacherExists: false };
+		}
+
+		const discipline = await disciplineRep.getDisciplineById(disciplineId);
+		if (discipline === undefined) {
+			return { disciplineExists: false };
+		}
+
+		await teacherDisciplineRelationRep.deleteTeacherFromDiscipline(teacherId, disciplineId);
+
+		return { teacherExists: true, disciplineExists: true };
 	};
 }
 
