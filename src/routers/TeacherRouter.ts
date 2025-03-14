@@ -10,9 +10,14 @@ teacherRouter.get('/healthy', (c: Context) => {
 });
 
 teacherRouter.get('/get', authenticate, teacherValidation, teacherController.getTeacherByUserId);
-teacherRouter.patch('/edit', authenticate, teacherValidation, teacherController.editTeacherById);
+teacherRouter.patch('/edit/:id', authenticate, teacherValidation, teacherController.editTeacherById);
 teacherRouter.post('/add-field', authenticate, teacherValidation, teacherController.addFieldToTeacher);
-teacherRouter.delete('/delete-field/:id', authenticate, teacherValidation, teacherController.deleteFieldFromTeacher);
+teacherRouter.delete(
+	'/delete-field/:fieldId',
+	authenticate,
+	teacherValidation,
+	teacherController.deleteFieldFromTeacher,
+);
 
 teacherRouter.get('/get-all-disciplines', authenticate, teacherValidation, teacherController.getAllDisciplines);
 teacherRouter.patch('/take-discipline', authenticate, teacherValidation, teacherController.takeDiscipline);
@@ -25,3 +30,11 @@ teacherRouter.get(
 );
 
 teacherRouter.get('/get-discipline/:id', authenticate, teacherValidation, teacherController.getDisciplineById);
+teacherRouter.patch('/edit-discipline/:id', authenticate, teacherValidation, teacherController.editDisciplineById);
+teacherRouter.post('/add-field-to-discipline', authenticate, teacherValidation, teacherController.addFieldToDiscipline);
+teacherRouter.delete(
+	'/delete-field-from-discipline/:fieldId',
+	authenticate,
+	teacherValidation,
+	teacherController.deleteFieldFromDiscipline,
+);

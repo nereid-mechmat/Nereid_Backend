@@ -58,12 +58,17 @@ export class AdminController {
 	};
 
 	editStudent = async (c: Context) => {
+		const studentId = Number(c.req.param('id'));
+		if (Number.isNaN(studentId)) {
+			return c.json({ message: 'No studentId was provided.' }, 400);
+		}
+
 		const body = await c.req.json().catch(() => {}); // Prevent crash if JSON is empty
 		if (body === undefined) {
 			return c.json({ message: 'Empty request body' }, 400);
 		}
 
-		const { studentId, email, firstName, lastName, patronymic, group, year, isActive } = body;
+		const { email, firstName, lastName, patronymic, group, year, isActive } = body;
 		const { studentExists } = await adminService.editStudent({
 			id: studentId,
 			email,
@@ -108,12 +113,17 @@ export class AdminController {
 	};
 
 	editTeacher = async (c: Context) => {
+		const teacherId = Number(c.req.param('id'));
+		if (Number.isNaN(teacherId)) {
+			return c.json({ message: 'No teacherId was provided.' }, 400);
+		}
+
 		const body = await c.req.json().catch(() => {}); // Prevent crash if JSON is empty
 		if (body === undefined) {
 			return c.json({ message: 'Empty request body' }, 400);
 		}
 
-		const { teacherId, email, firstName, lastName, patronymic, isActive } = body;
+		const { email, firstName, lastName, patronymic, isActive } = body;
 		const { teacherExists } = await adminService.editTeacher({
 			id: teacherId,
 			email,

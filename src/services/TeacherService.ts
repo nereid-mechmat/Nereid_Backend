@@ -131,6 +131,27 @@ export class TeacherService {
 		};
 	};
 
+	editDisciplineById = async (disciplineId: number, teacherUserId: number, discipline: {
+		name?: string;
+		description?: string;
+	}) => {
+		const currTeacher = await teacherRep.getTeacherByUserId(teacherUserId);
+		if (currTeacher === undefined) {
+			return { teacherExists: false };
+		}
+
+		if (currTeacher.isActive === false) {
+			return { isTeacherActive: false };
+		}
+
+		await disciplineRep.editDisciplineById(disciplineId, discipline);
+
+		return {
+			teacherExists: true,
+			isTeacherActive: true,
+		};
+	};
+
 	takeDiscipline = async (teacherId: number, disciplineId: number) => {
 		const teacher = await teacherRep.getTeacherById(teacherId);
 		if (teacher === undefined) {
@@ -161,6 +182,40 @@ export class TeacherService {
 		await teacherDisciplineRelationRep.deleteTeacherFromDiscipline(teacherId, disciplineId);
 
 		return { teacherExists: true, disciplineExists: true };
+	};
+
+	addFieldToDiscipline = async (disciplineId: number, teacherUserId: number, field: {
+		name: string;
+		content: string;
+	}) => {
+		const currTeacher = await teacherRep.getTeacherByUserId(teacherUserId);
+		if (currTeacher === undefined) {
+			return { teacherExists: false };
+		}
+
+		if (currTeacher.isActive === false) {
+			return { isTeacherActive: false };
+		}
+
+		await disciplineRep.addFieldToDiscipline(disciplineId, field);
+		return {
+			teacherExists: true,
+			isTeacherActive: true,
+		};
+	};
+
+	deleteFieldFromDiscipline = async (fieldId: number, teacherUserId: number) => {
+		const currTeacher = await teacherRep.getTeacherByUserId(teacherUserId);
+		if (currTeacher === undefined) {
+			return { teacherExists: false };
+		}
+
+		if (currTeacher.isActive === false) {
+			return { isTeacherActive: false };
+		}
+
+		await disciplineRep.deleteFieldFromDiscipline(fieldId);
+		return { teacherExists: true, isTeacherActive: true };
 	};
 }
 

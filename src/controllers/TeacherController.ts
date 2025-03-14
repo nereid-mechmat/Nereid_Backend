@@ -21,12 +21,17 @@ export class TeacherController {
 	};
 
 	editTeacherById = async (c: Context) => {
+		const teacherId = Number(c.req.param('id'));
+		if (Number.isNaN(teacherId)) {
+			return c.json({ message: 'No teacherId was provided.' }, 400);
+		}
+
 		const body = await c.req.json().catch(() => {}); // Prevent crash if JSON is empty
 		if (body === undefined) {
 			return c.json({ message: 'Empty request body' }, 400);
 		}
 
-		const { teacherId, email, firstName, lastName, patronymic } = body;
+		const { email, firstName, lastName, patronymic } = body;
 		const { teacherExists, isActive } = await teacherService.editTeacherById({
 			teacherId,
 			email,
@@ -67,7 +72,7 @@ export class TeacherController {
 	};
 
 	deleteFieldFromTeacher = async (c: Context) => {
-		const fieldId = Number(c.req.param('id'));
+		const fieldId = Number(c.req.param('fieldId'));
 		if (Number.isNaN(fieldId)) {
 			return c.json({ message: 'No fieldId was provided.' }, 400);
 		}
@@ -167,6 +172,82 @@ export class TeacherController {
 		}
 
 		return c.json({ message: 'success.' }, 200);
+	};
+
+	addFieldToDiscipline = async (c: Context) => {
+		const body = await c.req.json().catch(() => {}); // Prevent crash if JSON is empty
+		if (body === undefined) {
+			return c.json({ message: 'Empty request body' }, 400);
+		}
+		const token = c.req.header('authorization');
+		const userId = jwtDataGetters.getUserId(token!);
+
+		const { disciplineId, fieldName: name, fieldContent: content } = body;
+		const { teacherExists, isTeacherActive } = await teacherService.addFieldToDiscipline(disciplineId, userId, {
+			name,
+			content,
+		});
+
+		if (teacherExists === false) {
+			return c.json({ message: `teacher with userId '${userId}' doesn't exist.` }, 401);
+		}
+
+		if (isTeacherActive === false) {
+			return c.json({ message: `teacher with userId '${userId}' is inactive.` }, 401);
+		}
+
+		return c.json({ message: 'field was successfully added.' }, 200);
+	};
+
+	deleteFieldFromDiscipline = async (c: Context) => {
+		const fieldId = Number(c.req.param('fieldId'));
+		if (Number.isNaN(fieldId)) {
+			return c.json({ message: 'No fieldId was provided.' }, 400);
+		}
+		const token = c.req.header('authorization');
+		const userId = jwtDataGetters.getUserId(token!);
+
+		const { teacherExists, isTeacherActive } = await teacherService.deleteFieldFromDiscipline(fieldId, userId);
+
+		if (teacherExists === false) {
+			return c.json({ message: `teacher with userId '${userId}' doesn't exist.` }, 401);
+		}
+
+		if (isTeacherActive === false) {
+			return c.json({ message: `teacher with userId '${userId}' is inactive.` }, 401);
+		}
+
+		return c.json({ message: 'field was successfully deleted.' }, 200);
+	};
+
+	editDisciplineById = async (c: Context) => {
+		const disciplineId = Number(c.req.param('id'));
+		if (Number.isNaN(disciplineId)) {
+			return c.json({ message: 'No disciplineId was provided.' }, 400);
+		}
+		const token = c.req.header('authorization');
+		const userId = jwtDataGetters.getUserId(token!);
+
+		const body = await c.req.json().catch(() => {}); // Prevent crash if JSON is empty
+		if (body === undefined) {
+			return c.json({ message: 'Empty request body' }, 400);
+		}
+
+		const { name, description } = body;
+		const { teacherExists, isTeacherActive } = await teacherService.editDisciplineById(disciplineId, userId, {
+			name,
+			description,
+		});
+
+		if (teacherExists === false) {
+			return c.json({ message: `teacher with userId '${userId}' doesn't exist.` }, 401);
+		}
+
+		if (isTeacherActive === false) {
+			return c.json({ message: `teacher with userId '${userId}' is inactive.` }, 401);
+		}
+
+		return c.json({ message: 'discipline was successfully edited.' }, 200);
 	};
 }
 

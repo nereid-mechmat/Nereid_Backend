@@ -24,7 +24,7 @@ export class TeacherRep {
 		const teacher = await this.db
 			.select({
 				id: teachers.id,
-				userId: users.id,
+				userId: teachers.userId,
 				isActive: teachers.isActive,
 			})
 			.from(teachers)

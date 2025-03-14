@@ -41,6 +41,16 @@ export class DisciplineRep {
 		return discipline;
 	};
 
+	editDisciplineById = async (disciplineId: number, discipline: {
+		name?: string;
+		description?: string;
+	}) => {
+		await this.db
+			.update(disciplines)
+			.set(discipline)
+			.where(eq(disciplines.id, disciplineId));
+	};
+
 	getAllDisciplineFields = async (disciplineId: number) => {
 		const allDisciplineFields = await this.db
 			.select({
@@ -88,6 +98,25 @@ export class DisciplineRep {
 			.where(
 				eq(disciplines.id, disciplineId),
 			);
+	};
+
+	addFieldToDiscipline = async (disciplineId: number, field: {
+		name: string;
+		content: string;
+	}) => {
+		await this.db
+			.insert(disciplineFields)
+			.values({
+				disciplineId,
+				name: field.name,
+				content: field.content,
+			});
+	};
+
+	deleteFieldFromDiscipline = async (fieldId: number) => {
+		await this.db
+			.delete(disciplineFields)
+			.where(eq(disciplineFields.id, fieldId));
 	};
 }
 
