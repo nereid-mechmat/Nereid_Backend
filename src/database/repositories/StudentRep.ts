@@ -10,7 +10,8 @@ const filtersMap = {
 	firstName: users.firstName,
 	lastName: users.lastName,
 	patronymic: users.patronymic,
-	group: students.group,
+	educationalProgram: students.educationalProgram,
+	course: students.course,
 	year: students.year,
 	isActive: students.isActive,
 };
@@ -45,9 +46,17 @@ export class StudentRep {
 				lastName: users.lastName,
 				patronymic: users.patronymic,
 				email: users.email,
-				group: students.group,
+				educationalProgram: students.educationalProgram,
+				course: students.course,
 				year: students.year,
 				isActive: students.isActive,
+				canSelect: students.canSelect,
+				semester1MinCredits: students.semester1MinCredits,
+				semester1MaxCredits: students.semester1MaxCredits,
+				semester1Credits: students.semester1Credits,
+				semester2MinCredits: students.semester2MinCredits,
+				semester2MaxCredits: students.semester2MaxCredits,
+				semester2Credits: students.semester2Credits,
 			})
 			.from(students)
 			.innerJoin(users, eq(students.userId, users.id))
@@ -62,7 +71,8 @@ export class StudentRep {
 		firstName?: string;
 		lastName?: string;
 		patronymic?: string;
-		group?: string;
+		educationalProgram?: string;
+		course?: string;
 		year?: string;
 		isActive?: boolean;
 	}) => {
@@ -74,9 +84,17 @@ export class StudentRep {
 				lastName: users.lastName,
 				patronymic: users.patronymic,
 				email: users.email,
-				group: students.group,
+				educationalProgram: students.educationalProgram,
+				course: students.course,
 				year: students.year,
 				isActive: students.isActive,
+				canSelect: students.canSelect,
+				semester1MinCredits: students.semester1MinCredits,
+				semester1MaxCredits: students.semester1MaxCredits,
+				semester1Credits: students.semester1Credits,
+				semester2MinCredits: students.semester2MinCredits,
+				semester2MaxCredits: students.semester2MaxCredits,
+				semester2Credits: students.semester2Credits,
 			})
 			.from(students)
 			.innerJoin(users, eq(students.userId, users.id));
@@ -98,7 +116,8 @@ export class StudentRep {
 
 	addStudent = async (student: {
 		userId: number;
-		group: string;
+		educationalProgram: string;
+		course: string;
 		year: string;
 	}) => {
 		await this.db
@@ -106,18 +125,14 @@ export class StudentRep {
 			.values(
 				{
 					userId: student.userId,
-					group: student.group,
+					educationalProgram: student.educationalProgram,
+					course: student.course,
 					year: student.year,
 				},
 			);
 	};
 
-	editStudentById = async (studentId: number, student: {
-		group?: string;
-		year?: string;
-		isActive?: boolean;
-		canSelect?: boolean;
-	}) => {
+	editStudentById = async (studentId: number, student: Partial<typeof students.$inferSelect>) => {
 		await this.db
 			.update(students)
 			.set(student)

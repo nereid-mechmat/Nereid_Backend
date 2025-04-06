@@ -134,6 +134,8 @@ export class TeacherService {
 	editDisciplineById = async (disciplineId: number, teacherUserId: number, discipline: {
 		name?: string;
 		description?: string;
+		semester?: '1' | '2';
+		credits?: number;
 	}) => {
 		const currTeacher = await teacherRep.getTeacherByUserId(teacherUserId);
 		if (currTeacher === undefined) {
@@ -142,6 +144,10 @@ export class TeacherService {
 
 		if (currTeacher.isActive === false) {
 			return { isTeacherActive: false };
+		}
+
+		if (discipline.semester !== undefined && !['1', '2'].includes(discipline.semester)) {
+			return { invalidSemester: true };
 		}
 
 		await disciplineRep.editDisciplineById(disciplineId, discipline);

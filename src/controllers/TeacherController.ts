@@ -233,11 +233,17 @@ export class TeacherController {
 			return c.json({ message: 'Empty request body' }, 400);
 		}
 
-		const { name, description } = body;
-		const { teacherExists, isTeacherActive } = await teacherService.editDisciplineById(disciplineId, userId, {
-			name,
-			description,
-		});
+		const { name, description, semester, credits } = body;
+		const { teacherExists, isTeacherActive, invalidSemester } = await teacherService.editDisciplineById(
+			disciplineId,
+			userId,
+			{
+				name,
+				description,
+				semester,
+				credits,
+			},
+		);
 
 		if (teacherExists === false) {
 			return c.json({ message: `teacher with userId '${userId}' doesn't exist.` }, 401);
@@ -245,6 +251,10 @@ export class TeacherController {
 
 		if (isTeacherActive === false) {
 			return c.json({ message: `teacher with userId '${userId}' is inactive.` }, 401);
+		}
+
+		if (invalidSemester) {
+			return c.json({ message: `Invalid semester. Semester should be '1' or '2'.` }, 400);
 		}
 
 		return c.json({ message: 'discipline was successfully edited.' }, 200);

@@ -41,7 +41,7 @@ export const teacherValidation = async (c: Context, next: Next) => {
 	if (roleName !== 'teacher') {
 		c.status(400);
 		return c.json({
-			message: "you don't have 'admin' role.",
+			message: "you don't have 'teacher' role.",
 		});
 	}
 
@@ -54,7 +54,7 @@ export const studentValidation = async (c: Context, next: Next) => {
 	if (roleName !== 'student') {
 		c.status(400);
 		return c.json({
-			message: "you don't have 'admin' role.",
+			message: "you don't have 'student' role.",
 		});
 	}
 

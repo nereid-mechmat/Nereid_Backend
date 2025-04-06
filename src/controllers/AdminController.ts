@@ -37,7 +37,7 @@ export class AdminController {
 			firstName,
 			lastName,
 			patronymic,
-			group,
+			educationalProgram: group,
 			year,
 			isActive,
 		});
@@ -52,8 +52,8 @@ export class AdminController {
 			return c.json({ message: 'Empty request body' }, 400);
 		}
 
-		const { email, firstName, lastName, patronymic, group, year } = body;
-		await adminService.addStudent({ email, firstName, lastName, patronymic, group, year });
+		const { email, firstName, lastName, patronymic, educationalProgram, course, year } = body;
+		await adminService.addStudent({ email, firstName, lastName, patronymic, educationalProgram, course, year });
 		return c.text('OK', 200);
 	};
 
@@ -68,16 +68,41 @@ export class AdminController {
 			return c.json({ message: 'Empty request body' }, 400);
 		}
 
-		const { email, firstName, lastName, patronymic, group, year, isActive } = body;
+		const {
+			email,
+			firstName,
+			lastName,
+			patronymic,
+			educationalProgram,
+			course,
+			year,
+			isActive,
+			canSelect,
+			semester1MinCredits,
+			semester1MaxCredits,
+			semester1Credits,
+			semester2MinCredits,
+			semester2MaxCredits,
+			semester2Credits,
+		} = body;
+
 		const { studentExists } = await adminService.editStudent({
 			id: studentId,
 			email,
 			firstName,
 			lastName,
 			patronymic,
-			group,
+			educationalProgram,
+			course,
 			year,
 			isActive,
+			canSelect,
+			semester1MinCredits,
+			semester1MaxCredits,
+			semester1Credits,
+			semester2MinCredits,
+			semester2MaxCredits,
+			semester2Credits,
 		});
 
 		if (studentExists === false) {
@@ -176,8 +201,12 @@ export class AdminController {
 			return c.json({ message: 'Empty request body' }, 400);
 		}
 
-		const { disciplineName } = body;
-		await adminService.addDiscipline(disciplineName);
+		const { name, semester, credits } = body;
+		const { invalidSemester } = await adminService.addDiscipline({ name, semester, credits });
+		if (invalidSemester) {
+			return c.json({ message: `Invalid semester. Semester should be '1' or '2'.` }, 400);
+		}
+
 		return c.text('OK', 200);
 	};
 
