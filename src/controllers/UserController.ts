@@ -60,8 +60,7 @@ class UserController {
 			return c.json({ message: 'otp is invalid.' });
 		}
 
-		c.status(400);
-		return c.json({ message: 'otp was not sent.' });
+		return c.json({ message: 'otp was not sent.' }, 400);
 	};
 
 	getUser = async (c: Context) => {
@@ -75,8 +74,7 @@ class UserController {
 			return c.json({ user });
 		}
 
-		c.status(400);
-		return c.json({ message: 'user does not exist in out database.' });
+		return c.json({ message: 'user does not exist in our database.' }, 400);
 	};
 
 	changePassword = async (c: Context) => {

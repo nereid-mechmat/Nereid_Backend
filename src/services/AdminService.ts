@@ -36,7 +36,8 @@ export class AdminService {
 		firstName?: string;
 		lastName?: string;
 		patronymic?: string;
-		group?: string;
+		educationalProgram?: string;
+		course?: string;
 		year?: string;
 		isActive?: boolean;
 	}) => {
@@ -49,7 +50,8 @@ export class AdminService {
 		firstName: string;
 		lastName: string;
 		patronymic: string;
-		group: string;
+		educationalProgram: string;
+		course: string;
 		year: string;
 	}) => {
 		const saltRounds = Number(process.env['SALT_ROUNDS']);
@@ -79,10 +81,17 @@ export class AdminService {
 		firstName?: string;
 		lastName?: string;
 		patronymic?: string;
-		group?: string;
+		educationalProgram?: string;
+		course?: string;
 		year?: string;
 		isActive?: boolean;
 		canSelect?: boolean;
+		semester1MinCredits?: number;
+		semester1MaxCredits?: number;
+		semester1Credits?: number;
+		semester2MinCredits?: number;
+		semester2MaxCredits?: number;
+		semester2Credits?: number;
 	}) => {
 		const currStudent = await studentRep.getStudentById(student.id);
 		if (currStudent === undefined) {
@@ -104,10 +113,17 @@ export class AdminService {
 		}
 
 		await studentRep.editStudentById(currStudent.id, {
-			group: student.group,
+			educationalProgram: student.educationalProgram,
+			course: student.course,
 			year: student.year,
 			isActive: student.isActive,
 			canSelect: student.canSelect,
+			semester1MinCredits: student.semester1MinCredits,
+			semester1MaxCredits: student.semester1MaxCredits,
+			semester1Credits: student.semester1Credits,
+			semester2MinCredits: student.semester2MinCredits,
+			semester2MaxCredits: student.semester2MaxCredits,
+			semester2Credits: student.semester2Credits,
 		});
 		return {
 			studentExists: true,
@@ -212,8 +228,13 @@ export class AdminService {
 		};
 	};
 
-	addDiscipline = async (disciplineName: string) => {
-		await disciplineRep.addDiscipline(disciplineName);
+	addDiscipline = async (discipline: { name: string; semester: '1' | '2'; credits: number }) => {
+		if (!['1', '2'].includes(discipline.semester)) {
+			return { invalidSemester: true };
+		}
+
+		await disciplineRep.addDiscipline(discipline);
+		return { invalidSemester: false };
 	};
 
 	deleteDiscipline = async (disciplineId: number) => {
@@ -221,7 +242,7 @@ export class AdminService {
 	};
 
 	releaseTeacherFromDiscipline = async (teacherId: number, disciplineId: number) => {
-		await teacherDisciplineRelationRep.releaseTeacherFromDiscipline(teacherId, disciplineId);
+		await teacherDisciplineRelationRep.deleteTeacherFromDiscipline(teacherId, disciplineId);
 	};
 }
 

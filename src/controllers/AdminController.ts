@@ -37,7 +37,7 @@ export class AdminController {
 			firstName,
 			lastName,
 			patronymic,
-			group,
+			educationalProgram: group,
 			year,
 			isActive,
 		});
@@ -52,27 +52,57 @@ export class AdminController {
 			return c.json({ message: 'Empty request body' }, 400);
 		}
 
-		const { email, firstName, lastName, patronymic, group, year } = body;
-		await adminService.addStudent({ email, firstName, lastName, patronymic, group, year });
+		const { email, firstName, lastName, patronymic, educationalProgram, course, year } = body;
+		await adminService.addStudent({ email, firstName, lastName, patronymic, educationalProgram, course, year });
 		return c.text('OK', 200);
 	};
 
 	editStudent = async (c: Context) => {
+		const studentId = Number(c.req.param('id'));
+		if (Number.isNaN(studentId)) {
+			return c.json({ message: 'No studentId was provided.' }, 400);
+		}
+
 		const body = await c.req.json().catch(() => {}); // Prevent crash if JSON is empty
 		if (body === undefined) {
 			return c.json({ message: 'Empty request body' }, 400);
 		}
 
-		const { studentId, email, firstName, lastName, patronymic, group, year, isActive } = body;
+		const {
+			email,
+			firstName,
+			lastName,
+			patronymic,
+			educationalProgram,
+			course,
+			year,
+			isActive,
+			canSelect,
+			semester1MinCredits,
+			semester1MaxCredits,
+			semester1Credits,
+			semester2MinCredits,
+			semester2MaxCredits,
+			semester2Credits,
+		} = body;
+
 		const { studentExists } = await adminService.editStudent({
 			id: studentId,
 			email,
 			firstName,
 			lastName,
 			patronymic,
-			group,
+			educationalProgram,
+			course,
 			year,
 			isActive,
+			canSelect,
+			semester1MinCredits,
+			semester1MaxCredits,
+			semester1Credits,
+			semester2MinCredits,
+			semester2MaxCredits,
+			semester2Credits,
 		});
 
 		if (studentExists === false) {
@@ -108,12 +138,17 @@ export class AdminController {
 	};
 
 	editTeacher = async (c: Context) => {
+		const teacherId = Number(c.req.param('id'));
+		if (Number.isNaN(teacherId)) {
+			return c.json({ message: 'No teacherId was provided.' }, 400);
+		}
+
 		const body = await c.req.json().catch(() => {}); // Prevent crash if JSON is empty
 		if (body === undefined) {
 			return c.json({ message: 'Empty request body' }, 400);
 		}
 
-		const { teacherId, email, firstName, lastName, patronymic, isActive } = body;
+		const { email, firstName, lastName, patronymic, isActive } = body;
 		const { teacherExists } = await adminService.editTeacher({
 			id: teacherId,
 			email,
@@ -137,6 +172,9 @@ export class AdminController {
 
 	getDisciplineById = async (c: Context) => {
 		const disciplineId = Number(c.req.param('id'));
+		if (Number.isNaN(disciplineId)) {
+			return c.json({ message: 'No disciplineId was provided.' }, 400);
+		}
 		const {
 			disciplineExists,
 			discipline,
@@ -163,13 +201,20 @@ export class AdminController {
 			return c.json({ message: 'Empty request body' }, 400);
 		}
 
-		const { disciplineName } = body;
-		await adminService.addDiscipline(disciplineName);
+		const { name, semester, credits } = body;
+		const { invalidSemester } = await adminService.addDiscipline({ name, semester, credits });
+		if (invalidSemester) {
+			return c.json({ message: `Invalid semester. Semester should be '1' or '2'.` }, 400);
+		}
+
 		return c.text('OK', 200);
 	};
 
 	deleteDiscipline = async (c: Context) => {
 		const disciplineId = Number(c.req.param('id'));
+		if (Number.isNaN(disciplineId)) {
+			return c.json({ message: 'No disciplineId was provided.' }, 400);
+		}
 
 		await adminService.deleteDiscipline(disciplineId);
 		return c.text('OK', 200);

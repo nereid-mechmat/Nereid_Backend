@@ -1,8 +1,9 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { db } from '../databaseConnection.ts';
 import { disciplineFields } from '../schemas/disciplineFields.ts';
 import { disciplines } from '../schemas/disciplines.ts';
+import { studentDiscipleRelations } from '../schemas/studentDisciplineRelations.ts';
 import { teacherDiscipleRelations } from '../schemas/teacherDisciplineRelations.ts';
 import { teachers } from '../schemas/teachers.ts';
 import { users } from '../schemas/users.ts';
@@ -18,6 +19,51 @@ export class DisciplineRep {
 		return allDisciplines;
 	};
 
+	getAllDisciplinesByTeacherId = async (teacherId: number) => {
+		const allDisciplines = await this.db
+			.select({
+				id: disciplines.id,
+				name: disciplines.name,
+				credits: disciplines.credits,
+				semester: disciplines.semester,
+				description: disciplines.description,
+			})
+			.from(disciplines)
+			.innerJoin(teacherDiscipleRelations, eq(disciplines.id, teacherDiscipleRelations.disciplineId))
+			.where(eq(teacherDiscipleRelations.teacherId, teacherId));
+		return allDisciplines;
+	};
+
+	getAllDisciplinesBySemester = async (semester: '1' | '2') => {
+		const allDisciplines = await this.db
+			.select({
+				id: disciplines.id,
+				name: disciplines.name,
+			})
+			.from(disciplines)
+			.where(
+				eq(disciplines.semester, semester),
+			);
+
+		return allDisciplines;
+	};
+
+	getAllSelectedDisciplinesForStudent = async (filters: { semester: '1' | '2'; studentId: number }) => {
+		const allDisciplines = await this.db
+			.select({
+				id: disciplines.id,
+				name: disciplines.name,
+			})
+			.from(disciplines)
+			.innerJoin(studentDiscipleRelations, eq(disciplines.id, studentDiscipleRelations.disciplineId))
+			.where(and(
+				eq(disciplines.semester, filters.semester),
+				eq(studentDiscipleRelations.studentId, filters.studentId),
+			));
+
+		return allDisciplines;
+	};
+
 	getDisciplineById = async (disciplineId: number) => {
 		const discipline = await this.db
 			.select()
@@ -26,6 +72,18 @@ export class DisciplineRep {
 			.then((rows) => rows[0]);
 
 		return discipline;
+	};
+
+	editDisciplineById = async (disciplineId: number, discipline: {
+		name?: string;
+		description?: string;
+		semester?: '1' | '2';
+		credits?: number;
+	}) => {
+		await this.db
+			.update(disciplines)
+			.set(discipline)
+			.where(eq(disciplines.id, disciplineId));
 	};
 
 	getAllDisciplineFields = async (disciplineId: number) => {
@@ -59,8 +117,8 @@ export class DisciplineRep {
 		return allDisciplineTeachers;
 	};
 
-	addDiscipline = async (disciplineName: string) => {
-		await this.db.insert(disciplines).values({ name: disciplineName });
+	addDiscipline = async (discipline: { name: string; semester: '1' | '2'; credits: number }) => {
+		await this.db.insert(disciplines).values(discipline);
 	};
 
 	deleteDiscipline = async (disciplineId: number) => {
@@ -75,6 +133,25 @@ export class DisciplineRep {
 			.where(
 				eq(disciplines.id, disciplineId),
 			);
+	};
+
+	addFieldToDiscipline = async (disciplineId: number, field: {
+		name: string;
+		content: string;
+	}) => {
+		await this.db
+			.insert(disciplineFields)
+			.values({
+				disciplineId,
+				name: field.name,
+				content: field.content,
+			});
+	};
+
+	deleteFieldFromDiscipline = async (fieldId: number) => {
+		await this.db
+			.delete(disciplineFields)
+			.where(eq(disciplineFields.id, fieldId));
 	};
 }
 

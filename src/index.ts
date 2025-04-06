@@ -3,6 +3,8 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { prettyJSON } from 'hono/pretty-json';
 import { adminRouter } from './routers/AdminRouter.ts';
+import { studentRouter } from './routers/StudentRouter.ts';
+import { teacherRouter } from './routers/TeacherRouter.ts';
 import { userRouter } from './routers/UserRouter.ts';
 
 const app = new Hono();
@@ -13,6 +15,8 @@ app.use(prettyJSON());
 
 app.route('/user', userRouter);
 app.route('/admin', adminRouter);
+app.route('/teacher', teacherRouter);
+app.route('/student', studentRouter);
 
 app.get('/healthy', (c) => {
 	return c.text('healthy');

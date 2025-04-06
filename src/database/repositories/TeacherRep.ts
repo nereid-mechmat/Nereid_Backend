@@ -20,11 +20,30 @@ export class TeacherRep {
 		this.db = dbClient;
 	}
 
-	getTeacherById = async (teacherId: number) => {
+	getFullTeacherById = async (teacherId: number) => {
 		const teacher = await this.db
 			.select({
 				id: teachers.id,
 				userId: users.id,
+				firstName: users.firstName,
+				lastName: users.lastName,
+				patronymic: users.patronymic,
+				email: users.email,
+				isActive: teachers.isActive,
+			})
+			.from(teachers)
+			.innerJoin(users, eq(teachers.userId, users.id))
+			.where(eq(teachers.id, teacherId))
+			.then((rows) => rows[0]);
+
+		return teacher;
+	};
+
+	getTeacherById = async (teacherId: number) => {
+		const teacher = await this.db
+			.select({
+				id: teachers.id,
+				userId: teachers.userId,
 				isActive: teachers.isActive,
 			})
 			.from(teachers)
@@ -122,6 +141,10 @@ export class TeacherRep {
 			.where(eq(teachers.id, teacherId));
 
 		return allTeacherFields;
+	};
+
+	getFieldById = async (fieldId: number) => {
+		return await this.db.select().from(teacherFields).where(eq(teacherFields.id, fieldId)).then((rows) => rows[0]);
 	};
 
 	addFieldToTeacher = async (
