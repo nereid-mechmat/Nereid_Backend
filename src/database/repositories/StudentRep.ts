@@ -6,6 +6,7 @@ import { students } from '../schemas/students.ts';
 import { users } from '../schemas/users.ts';
 
 const filtersMap = {
+	studentId: students.id,
 	email: users.email,
 	firstName: users.firstName,
 	lastName: users.lastName,
@@ -14,6 +15,7 @@ const filtersMap = {
 	course: students.course,
 	year: students.year,
 	isActive: students.isActive,
+	canSelect: students.canSelect,
 };
 
 export class StudentRep {
@@ -75,6 +77,7 @@ export class StudentRep {
 		course?: string;
 		year?: string;
 		isActive?: boolean;
+		canSelect?: boolean;
 	}) => {
 		const query = this.db
 			.select({
@@ -137,6 +140,36 @@ export class StudentRep {
 			.update(students)
 			.set(student)
 			.where(eq(students.id, studentId));
+	};
+
+	editStudentBy = async (filters: {
+		studentId?: number;
+		email?: string;
+		firstName?: string;
+		lastName?: string;
+		patronymic?: string;
+		educationalProgram?: string;
+		course?: string;
+		year?: string;
+		isActive?: boolean;
+		canSelect?: boolean;
+	}, student: Partial<typeof students.$inferSelect>) => {
+		if (Object.keys(filters).length === 0) return;
+
+		const updateQuery = this.db.update(students).set(student);
+
+		const eqList: SQL<unknown>[] = [];
+		for (const [filterName, filterValue] of Object.entries(filters ?? {})) {
+			const drizzleColumn = filtersMap[filterName as keyof typeof filtersMap];
+			if (drizzleColumn !== undefined && filterValue !== undefined) {
+				eqList.push(eq(drizzleColumn, filterValue));
+			}
+		}
+
+		updateQuery.where(and(...eqList));
+		await updateQuery;
+
+		return;
 	};
 }
 

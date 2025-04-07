@@ -230,6 +230,30 @@ export class AdminController {
 		await adminService.releaseTeacherFromDiscipline(teacherId, disciplineId);
 		return c.text('OK', 200);
 	};
+
+	lockDisciplineSelection = async (c: Context) => {
+		await adminService.lockDisciplineSelection();
+		return c.text('OK', 200);
+	};
+
+	unlockDisciplineSelection = async (c: Context) => {
+		await adminService.unlockDisciplineSelection();
+		return c.text('OK', 200);
+	};
+
+	getStudentsForAllDisciplines = async (c: Context) => {
+		const semester = c.req.query('semester');
+		if (semester === undefined) {
+			return c.json({ message: 'semester is required' }, 400);
+		}
+
+		const csv = await adminService.getStudentsForAllDisciplines(semester as '1' | '2');
+
+		c.header('Content-Type', 'text/csv');
+		c.header('Content-Disposition', 'attachment; filename="students-for-all-disciplines.csv"');
+
+		return c.text(csv);
+	};
 }
 
 export default new AdminController();

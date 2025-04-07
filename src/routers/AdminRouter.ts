@@ -30,3 +30,17 @@ adminRouter.patch(
 	adminValidation,
 	adminController.releaseTeacherFromDiscipline,
 );
+
+adminRouter.patch('/lock-discipline-selection', authenticate, adminValidation, adminController.lockDisciplineSelection);
+adminRouter.patch(
+	'/unlock-discipline-selection',
+	authenticate,
+	adminValidation,
+	adminController.unlockDisciplineSelection,
+);
+adminRouter.get(
+	'/get-students-for-all-disciplines',
+	authenticate,
+	adminValidation,
+	adminController.getStudentsForAllDisciplines,
+);
