@@ -247,12 +247,16 @@ export class AdminController {
 			return c.json({ message: 'semester is required' }, 400);
 		}
 
-		const csv = await adminService.getStudentsForAllDisciplines(semester as '1' | '2');
+		const { csv, invalidSemester } = await adminService.getStudentsForAllDisciplines(semester as '1' | '2');
+
+		if (invalidSemester) {
+			return c.json({ message: `Invalid semester. Semester should be '1' or '2'.` }, 400);
+		}
 
 		c.header('Content-Type', 'text/csv');
-		c.header('Content-Disposition', 'attachment; filename="students-for-all-disciplines.csv"');
+		c.header('Content-Disposition', `attachment; filename="students-for-all-disciplines-semester-${semester}.csv"`);
 
-		return c.text(csv);
+		return c.text(csv ?? '');
 	};
 }
 

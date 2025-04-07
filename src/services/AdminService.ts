@@ -256,6 +256,10 @@ export class AdminService {
 	};
 
 	getStudentsForAllDisciplines = async (semester: '1' | '2') => {
+		if (!['1', '2'].includes(semester)) {
+			return { invalidSemester: true };
+		}
+
 		const semesterDisciplines = await disciplineRep.getAllDisciplinesBySemester(semester);
 		const promises: ReturnType<typeof studentDisciplineRelationRep.getStudentsByDiscipline>[] = [];
 
@@ -283,7 +287,10 @@ export class AdminService {
 			csv += '\n\n';
 		}
 
-		return csv;
+		return {
+			invalidSemester: false,
+			csv,
+		};
 	};
 }
 
