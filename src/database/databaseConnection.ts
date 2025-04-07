@@ -16,5 +16,8 @@ const pool = new Pool({
 });
 
 export const db = drizzle(pool);
-db.execute(sql`select now();`);
+
+(async () => {
+	await db.execute(sql`select now();`);
+})();
 console.log('database connection was established successfully.');
