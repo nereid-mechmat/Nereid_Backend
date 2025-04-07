@@ -7,7 +7,7 @@
 		"db:push": "npx drizzle-kit push",
 		"db:seed": "tsx src/database/seedScript.ts",
 		"dev": "tsx watch src/index.ts",
-		"start": "tsx src/test.ts"
+		"start": "tsx src/dev/test.ts"
 	},
 	"keywords": [],
 	"author": "",
@@ -33,6 +33,7 @@
 	},
 	"dependencies": {
 		"@hono/node-server": "^1.13.7",
+		"@json2csv/plainjs": "^7.0.6",
 		"bcrypt": "^5.1.1",
 		"dotenv": "^16.4.7",
 		"drizzle-orm": "^0.39.2",

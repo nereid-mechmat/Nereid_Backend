@@ -1,7 +1,9 @@
+import { Parser } from '@json2csv/plainjs';
 import bcrypt from 'bcrypt';
 import { randomBytes } from 'node:crypto';
 import disciplineRep from '~/database/repositories/DisciplineRep.ts';
 import roleRep from '~/database/repositories/RoleRep.ts';
+import studentDisciplineRelationRep from '~/database/repositories/studentDisciplineRelationRep.ts';
 import teacherDisciplineRelationRep from '~/database/repositories/teacherDisciplineRelationRep.ts';
 import userRep from '~/database/repositories/UserRep.ts';
 import studentRep from '../database/repositories/StudentRep.ts';
@@ -243,6 +245,52 @@ export class AdminService {
 
 	releaseTeacherFromDiscipline = async (teacherId: number, disciplineId: number) => {
 		await teacherDisciplineRelationRep.deleteTeacherFromDiscipline(teacherId, disciplineId);
+	};
+
+	lockDisciplineSelection = async () => {
+		await studentRep.editStudentBy({ isActive: true }, { canSelect: false });
+	};
+
+	unlockDisciplineSelection = async () => {
+		await studentRep.editStudentBy({ isActive: true, canSelect: false }, { canSelect: true });
+	};
+
+	getStudentsForAllDisciplines = async (semester: '1' | '2') => {
+		if (!['1', '2'].includes(semester)) {
+			return { invalidSemester: true };
+		}
+
+		const semesterDisciplines = await disciplineRep.getAllDisciplinesBySemester(semester);
+		const promises: ReturnType<typeof studentDisciplineRelationRep.getStudentsByDiscipline>[] = [];
+
+		for (const discipline of semesterDisciplines) {
+			promises.push(studentDisciplineRelationRep.getStudentsByDiscipline(discipline.id));
+		}
+
+		const resolvedPromises = await Promise.all(promises);
+		const studentsForAllDisciplines = resolvedPromises.map((studentList, idx) => ({
+			disciplineName: semesterDisciplines[idx]!.name,
+			disciplineSemester: semesterDisciplines[idx]!.semester,
+			students: studentList,
+		}));
+
+		const parser = new Parser({ includeEmptyRows: true });
+
+		let csv: string = '';
+		for (const disciplineStudents of studentsForAllDisciplines) {
+			csv += `${disciplineStudents.disciplineName},semester:${disciplineStudents.disciplineSemester}\n`;
+			csv += parser.parse(disciplineStudents.students);
+
+			// const studentKeysCount = Object.keys(disciplineStudents.students[0]! ?? {}).length;
+			// const comasCount = studentKeysCount === 0 ? studentKeysCount : studentKeysCount - 1;
+			// csv += '\n' + `,`.repeat(comasCount) + '\n';
+			csv += '\n\n';
+		}
+
+		return {
+			invalidSemester: false,
+			csv,
+		};
 	};
 }
 

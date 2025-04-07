@@ -36,10 +36,7 @@ export class DisciplineRep {
 
 	getAllDisciplinesBySemester = async (semester: '1' | '2') => {
 		const allDisciplines = await this.db
-			.select({
-				id: disciplines.id,
-				name: disciplines.name,
-			})
+			.select()
 			.from(disciplines)
 			.where(
 				eq(disciplines.semester, semester),
