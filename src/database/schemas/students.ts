@@ -3,7 +3,7 @@ import { users } from './users.ts';
 
 export const students = pgTable('students', {
 	id: integer().primaryKey().generatedAlwaysAsIdentity(),
-	userId: integer().notNull().references(() => users.id),
+	userId: integer().notNull().unique().references(() => users.id),
 	year: varchar({ length: 255 }).notNull(),
 	educationalProgram: varchar({ length: 255 }).notNull(),
 	course: varchar({ length: 255 }).notNull(),
