@@ -44,3 +44,10 @@ adminRouter.get(
 	adminValidation,
 	adminController.getStudentsForAllDisciplines,
 );
+
+adminRouter.patch(
+	'/recalculate-students-credits',
+	authenticate,
+	adminValidation,
+	adminController.recalculateStudentsCredits,
+);

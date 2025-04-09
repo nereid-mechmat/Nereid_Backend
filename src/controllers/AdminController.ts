@@ -258,6 +258,12 @@ export class AdminController {
 
 		return c.text(csv ?? '');
 	};
+
+	recalculateStudentsCredits = async (c: Context) => {
+		await adminService.recalculateStudentsCredits();
+
+		return c.text('success', 200);
+	};
 }
 
 export default new AdminController();

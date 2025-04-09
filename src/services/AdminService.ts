@@ -8,6 +8,7 @@ import teacherDisciplineRelationRep from '~/database/repositories/teacherDiscipl
 import userRep from '~/database/repositories/UserRep.ts';
 import studentRep from '../database/repositories/StudentRep.ts';
 import teacherRep from '../database/repositories/TeacherRep.ts';
+import studentService from './StudentService.ts';
 
 export class AdminService {
 	getAdminByUserId = async (userId: number) => {
@@ -291,6 +292,35 @@ export class AdminService {
 			invalidSemester: false,
 			csv,
 		};
+	};
+
+	recalculateStudentsCredits = async () => {
+		const allStudents = await studentRep.getAllStudents();
+
+		const allDisciplines = await disciplineRep.getAllDisciplines();
+		const allDisciplinesMap: { [discId: number]: (typeof allDisciplines)[number] } = {};
+		for (const disc of allDisciplines) {
+			allDisciplinesMap[disc.id] = disc;
+		}
+
+		const promises = [];
+		for (const student of allStudents) {
+			const semester1Discs = await studentService.getAllSelectedDisciplines(student.userId, '1');
+			let semester1Credits = 0;
+			for (const disc of semester1Discs.selectedDisciplines) {
+				semester1Credits += allDisciplinesMap[disc.id]!.credits;
+			}
+
+			const semester2Discs = await studentService.getAllSelectedDisciplines(student.userId, '2');
+			let semester2Credits = 0;
+			for (const disc of semester2Discs.selectedDisciplines) {
+				semester2Credits += allDisciplinesMap[disc.id]!.credits;
+			}
+
+			promises.push(studentRep.editStudentById(student.id, { semester1Credits, semester2Credits }));
+		}
+
+		await Promise.all(promises);
 	};
 }
 

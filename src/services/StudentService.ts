@@ -45,16 +45,16 @@ export class StudentService {
 
 	getAllSelectedDisciplines = async (userId: number, semester: '1' | '2') => {
 		if (!['1', '2'].includes(semester)) {
-			return { invalidSemester: true };
+			return { selectedDisciplines: [], invalidSemester: true };
 		}
 
 		const student = await studentRep.getStudentByUserId(userId);
 		if (student === undefined) {
-			return { studentExists: false };
+			return { selectedDisciplines: [], studentExists: false };
 		}
 
 		if (student.isActive === false) {
-			return { studentIsActive: false };
+			return { selectedDisciplines: [], studentIsActive: false };
 		}
 
 		const selectedDisciplines = await disciplineRep.getAllSelectedDisciplinesForStudent({
