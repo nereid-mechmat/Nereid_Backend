@@ -198,10 +198,19 @@ export class StudentService {
 
 		await studentDisciplineRelationRep.deleteDisciplineFromStudent(student.id, disciplineId);
 
+		let studentUpdatedCredits = studentCurrentCredits - discipline.credits;
+		if (studentUpdatedCredits < 0) {
+			console.warn(
+				`Student with studentId ${student.id} and userId: (${student.userId})`
+					+ `has negative credits(${studentUpdatedCredits}) after deselecting discipline ${disciplineId}.`
+					+ `\nCredits was set to zero.`,
+			);
+		}
+		studentUpdatedCredits = studentUpdatedCredits < 0 ? 0 : studentUpdatedCredits;
 		discipline.semester === '1'
-			? await studentRep.editStudentById(student.id, { semester1Credits: studentCurrentCredits - discipline.credits })
+			? await studentRep.editStudentById(student.id, { semester1Credits: studentUpdatedCredits })
 			// discipline.semester === '2'
-			: await studentRep.editStudentById(student.id, { semester2Credits: studentCurrentCredits - discipline.credits });
+			: await studentRep.editStudentById(student.id, { semester2Credits: studentUpdatedCredits });
 
 		return {
 			studentExists: true,

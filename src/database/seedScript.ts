@@ -1,4 +1,5 @@
 import bcrypt from 'bcrypt';
+import { gt } from 'drizzle-orm';
 import { reset, seed } from 'drizzle-seed';
 import { db } from './databaseConnection.ts';
 import { disciplineFields } from './schemas/disciplineFields.ts';
@@ -147,17 +148,34 @@ const insertEscentialStudents = async () => {
 };
 
 const insertEscentialTeachers = async () => {
-	db.insert(teachers).overridingSystemValue().values([{
+	await db.insert(teachers).overridingSystemValue().values([{
 		id: -1,
 		userId: -2,
 		isActive: true,
 	}]);
 };
 
+export const fastCartesianProduct = (sets: (number | string | boolean | object)[][], index: number) => {
+	const resultList = [];
+	let currSet: (typeof sets)[number];
+	let element: (typeof sets)[number][number];
+
+	for (let i = sets.length - 1; i >= 0; i--) {
+		currSet = sets[i]!;
+		element = currSet[index % currSet.length]!;
+		resultList.unshift(element);
+		index = Math.floor(index / currSet.length);
+	}
+
+	return resultList;
+};
+
 // TODO: make it work
 const main = async () => {
 	const studentsCount = 200;
 	const studentDiscipleRelationsCount = 2000;
+	const teachersCount = 45;
+	const teacherDiscipleRelationsCount = 50;
 
 	await reset(db, schema);
 
@@ -168,10 +186,10 @@ const main = async () => {
 
 	await seed(db, schema4students).refine((funcs) => ({
 		users: {
-			count: studentsCount,
+			count: studentsCount + teachersCount,
 			columns: {
 				// ignore column
-				// id: funcs.default({ defaultValue: undefined }),
+				id: funcs.intPrimaryKey(),
 				roleId: funcs.default({ defaultValue: 2 }),
 				otp: funcs.default({ defaultValue: null }),
 				otpExpiredTimestamp: funcs.default({ defaultValue: null }),
@@ -220,6 +238,57 @@ const main = async () => {
 			count: studentDiscipleRelationsCount,
 		},
 	}));
+
+	await db.update(users).set({ roleId: 1 }).where(gt(users.id, studentsCount));
+
+	const teacherUsersIds = await db.select({ userId: users.id }).from(users).where(gt(users.id, studentsCount));
+	await db.insert(teachers).values(teacherUsersIds);
+	const disciplineIds = await db.select({ disciplineId: disciplines.id }).from(disciplines);
+	const teacherIds = await db.select({ teacherId: teachers.id }).from(teachers);
+
+	const teacherDiscipleRelationsL = [];
+	for (let i = 0; i < teacherDiscipleRelationsCount; i++) {
+		const [teacherObj, disciplineObj] = fastCartesianProduct([teacherIds, disciplineIds], i) as [
+			{ teacherId: number },
+			{ disciplineId: number },
+		];
+		teacherDiscipleRelationsL.push({ ...teacherObj, ...disciplineObj });
+	}
+	await db.insert(teacherDiscipleRelations).values(teacherDiscipleRelationsL);
+
+	// await reset(db, { disciplines });
+
+	// await seed(db, schema4teachers).refine((funcs) => ({
+	// 	users: {
+	// 		skipN: studentsCount,
+	// 		count: studentsCount + teachersCount,
+	// 		columns: {
+	// 			id: funcs.intPrimaryKey(),
+	// 			roleId: funcs.default({ defaultValue: 1 }),
+	// 			otp: funcs.default({ defaultValue: null }),
+	// 			otpExpiredTimestamp: funcs.default({ defaultValue: null }),
+	// 			patronymic: funcs.firstName(),
+	// 			password: funcs.default({ defaultValue: hashedPassword }),
+	// 		},
+	// 	},
+	// 	teachers: {
+	// 		count: teachersCount,
+	// 	},
+	// 	disciplines: {
+	// 		count: disciplineNames.length,
+	// 		columns: {
+	// 			// ignore column
+	// 			// id: funcs.default({ defaultValue: undefined }),
+	// 			name: funcs.valuesFromArray({ values: disciplineNames, isUnique: true }),
+	// 			semester: funcs.valuesFromArray({ values: ['1', '2'] }),
+	// 			credits: funcs.valuesFromArray({ values: [1, 2, 3, 4] }),
+	// 			description: funcs.loremIpsum(),
+	// 		},
+	// 	},
+	// 	teacherDiscipleRelations: {
+	// 		count: teacherDiscipleRelationsCount,
+	// 	},
+	// }));
 };
 
 main();

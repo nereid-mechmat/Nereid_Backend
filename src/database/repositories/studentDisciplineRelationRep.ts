@@ -11,6 +11,14 @@ export class StudentDisciplineRelationRep {
 		this.db = dbClient;
 	}
 
+	getAllRelations = async () => {
+		const relations = await this.db
+			.select()
+			.from(studentDiscipleRelations);
+
+		return relations;
+	};
+
 	addDisciplineToStudent = async (studentId: number, disciplineId: number) => {
 		const result = await this.db
 			.select()
