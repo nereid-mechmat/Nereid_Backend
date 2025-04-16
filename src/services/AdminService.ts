@@ -294,6 +294,7 @@ export class AdminService {
 		};
 	};
 
+	// method to help seeding database with test data
 	recalculateStudentsCredits = async () => {
 		const allStudents = await studentRep.getAllStudents();
 
@@ -301,6 +302,33 @@ export class AdminService {
 		const allDisciplinesMap: { [discId: number]: (typeof allDisciplines)[number] } = {};
 		for (const disc of allDisciplines) {
 			allDisciplinesMap[disc.id] = disc;
+		}
+
+		const allRelations = await studentDisciplineRelationRep.getAllRelations();
+		const allRelationsMap: Map<
+			string,
+			{ count: number; relation: { studentId: number | null; disciplineId: number | null } }
+		> = new Map();
+		for (const relation of allRelations) {
+			const keyStr = JSON.stringify(relation);
+
+			if (!allRelationsMap.has(keyStr)) {
+				allRelationsMap.set(keyStr, { count: 0, relation });
+			}
+			allRelationsMap.set(keyStr, { count: allRelationsMap.get(keyStr)!.count + 1, relation });
+		}
+
+		for (const [_, value] of allRelationsMap.entries()) {
+			if (value.count > 1) {
+				await studentDisciplineRelationRep.deleteDisciplineFromStudent(
+					value.relation.studentId!,
+					value.relation.disciplineId!,
+				);
+				await studentDisciplineRelationRep.addDisciplineToStudent(
+					value.relation.studentId!,
+					value.relation.disciplineId!,
+				);
+			}
 		}
 
 		const promises = [];
