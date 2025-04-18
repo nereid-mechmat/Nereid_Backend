@@ -50,6 +50,7 @@ export class DisciplineRep {
 			.select({
 				id: disciplines.id,
 				name: disciplines.name,
+				credits: disciplines.credits,
 			})
 			.from(disciplines)
 			.innerJoin(studentDiscipleRelations, eq(disciplines.id, studentDiscipleRelations.disciplineId))
