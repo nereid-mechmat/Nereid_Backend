@@ -32,5 +32,5 @@ studentRouter.get(
 	studentController.getTeacherById,
 );
 
-studentRouter.patch('/select-discipline/:id', authenticate, studentValidation, studentController.selectDiscipline);
-studentRouter.patch('/deselect-discipline/:id', authenticate, studentValidation, studentController.deselectDiscipline);
+studentRouter.patch('/select-discipline', authenticate, studentValidation, studentController.selectDiscipline);
+studentRouter.patch('/deselect-discipline', authenticate, studentValidation, studentController.deselectDiscipline);

@@ -141,7 +141,11 @@ export class StudentService {
 		};
 	};
 
-	selectDiscipline = async (userId: number, disciplineId: number) => {
+	selectDiscipline = async (userId: number, disciplineIds: number[], semester: '1' | '2') => {
+		if (!['1', '2'].includes(semester)) {
+			return { invalidSemester: true };
+		}
+
 		const student = await studentRep.getStudentByUserId(userId);
 		if (student === undefined) {
 			return { studentExists: false };
@@ -155,37 +159,55 @@ export class StudentService {
 			return { studentCanSelect: false };
 		}
 
-		const discipline = await disciplineRep.getDisciplineById(disciplineId);
-		if (discipline === undefined) {
+		const studentMaxCredits = semester === '1' ? student.semester1MaxCredits : student.semester2MaxCredits;
+		const studentCurrentCredits = semester === '1' ? student.semester1Credits : student.semester2Credits;
+
+		const promises = disciplineIds.map(async (disciplineId) => await disciplineRep.getDisciplineById(disciplineId));
+		const allDisciplines = await Promise.all(promises);
+
+		let filteredDisciplines = allDisciplines.filter((discipline) => discipline !== undefined);
+		if (filteredDisciplines.length !== disciplineIds.length) {
 			return { disciplineExists: false };
 		}
 
-		const studentMaxCredits = discipline.semester === '1' ? student.semester1MaxCredits : student.semester2MaxCredits;
-		const studentCurrentCredits = discipline.semester === '1' ? student.semester1Credits : student.semester2Credits;
+		filteredDisciplines = filteredDisciplines.filter((discipline) => discipline.semester === semester);
+		if (filteredDisciplines.length !== disciplineIds.length) {
+			return { wrongSemester: true };
+		}
+
+		const creditsToAdd = filteredDisciplines.reduce((acc, discipline) => acc + discipline.credits, 0);
 		if (
-			studentCurrentCredits + discipline.credits > studentMaxCredits
+			studentCurrentCredits + creditsToAdd > studentMaxCredits
 		) {
 			return { exceededCreditsMax: true };
 		}
 
-		await studentDisciplineRelationRep.addDisciplineToStudent(student.id, disciplineId);
+		const promises_ = filteredDisciplines.map(async (discipline) =>
+			await studentDisciplineRelationRep.addDisciplineToStudent(student.id, discipline.id)
+		);
+		await Promise.all(promises_);
 
-		discipline.semester === '1'
-			? await studentRep.editStudentById(student.id, { semester1Credits: studentCurrentCredits + discipline.credits })
+		semester === '1'
+			? await studentRep.editStudentById(student.id, { semester1Credits: studentCurrentCredits + creditsToAdd })
 			// discipline.semester === '2'
-			: await studentRep.editStudentById(student.id, { semester2Credits: studentCurrentCredits + discipline.credits });
+			: await studentRep.editStudentById(student.id, { semester2Credits: studentCurrentCredits + creditsToAdd });
 
 		return {
 			studentExists: true,
 			studentIsActive: true,
 			studentCanSelect: true,
 			disciplineExists: true,
+			wrongSemester: false,
 			exceededCreditsMax: false,
-			currentCredits: studentCurrentCredits + discipline.credits,
+			currentCredits: studentCurrentCredits + creditsToAdd,
 		};
 	};
 
-	deselectDiscipline = async (userId: number, disciplineId: number) => {
+	deselectDiscipline = async (userId: number, disciplineIds: number[], semester: '1' | '2') => {
+		if (!['1', '2'].includes(semester)) {
+			return { invalidSemester: true };
+		}
+
 		const student = await studentRep.getStudentByUserId(userId);
 		if (student === undefined) {
 			return { studentExists: false };
@@ -199,25 +221,29 @@ export class StudentService {
 			return { studentCanSelect: false };
 		}
 
-		const discipline = await disciplineRep.getDisciplineById(disciplineId);
-		if (discipline === undefined) {
-			return { disciplineExists: false };
-		}
+		const promises = disciplineIds.map(async (disciplineId) => await disciplineRep.getDisciplineById(disciplineId));
+		const allDisciplines = await Promise.all(promises);
+		const filteredDisciplines = allDisciplines.filter((discipline) => discipline !== undefined);
 
-		const studentCurrentCredits = discipline.semester === '1' ? student.semester1Credits : student.semester2Credits;
+		const studentCurrentCredits = semester === '1' ? student.semester1Credits : student.semester2Credits;
 
-		await studentDisciplineRelationRep.deleteDisciplineFromStudent(student.id, disciplineId);
+		const promises_ = filteredDisciplines.map(async (discipline) =>
+			await studentDisciplineRelationRep.deleteDisciplineFromStudent(student.id, discipline.id)
+		);
+		await Promise.all(promises_);
 
-		let studentUpdatedCredits = studentCurrentCredits - discipline.credits;
+		const creditsToRemove = filteredDisciplines.reduce((acc, discipline) => acc + discipline.credits, 0);
+
+		let studentUpdatedCredits = studentCurrentCredits - creditsToRemove;
 		if (studentUpdatedCredits < 0) {
 			console.warn(
 				`Student with studentId ${student.id} and userId: (${student.userId})`
-					+ `has negative credits(${studentUpdatedCredits}) after deselecting discipline ${disciplineId}.`
+					+ `has negative credits(${studentUpdatedCredits}) after deselecting disciplines.`
 					+ `\nCredits was set to zero.`,
 			);
 		}
 		studentUpdatedCredits = studentUpdatedCredits < 0 ? 0 : studentUpdatedCredits;
-		discipline.semester === '1'
+		semester === '1'
 			? await studentRep.editStudentById(student.id, { semester1Credits: studentUpdatedCredits })
 			// discipline.semester === '2'
 			: await studentRep.editStudentById(student.id, { semester2Credits: studentUpdatedCredits });
@@ -227,7 +253,7 @@ export class StudentService {
 			studentIsActive: true,
 			studentCanSelect: true,
 			disciplineExists: true,
-			currentCredits: studentCurrentCredits - discipline.credits,
+			currentCredits: studentCurrentCredits - creditsToRemove,
 		};
 	};
 }
