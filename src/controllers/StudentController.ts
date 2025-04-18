@@ -164,17 +164,43 @@ export class StudentController {
 		const token = c.req.header('authorization');
 		const userId = jwtDataGetters.getUserId(token!);
 
-		const disciplineId = Number(c.req.param('id'));
-		if (Number.isNaN(disciplineId)) {
-			return c.json({ message: 'No disciplineId was provided.' }, 400);
+		const body = await c.req.json().catch(() => {}); // Prevent crash if JSON is empty
+		if (body === undefined) {
+			return c.json({ message: 'Empty request body' }, 400);
 		}
 
-		const { studentExists, studentIsActive, studentCanSelect, disciplineExists, exceededCreditsMax, currentCredits } =
-			await studentService
-				.selectDiscipline(
-					userId,
-					disciplineId,
-				);
+		const disciplineIds = body.disciplineIds ?? [];
+
+		const semester = c.req.query('semester');
+		if (semester === undefined) {
+			return c.json({ message: 'semester is required' }, 400);
+		}
+
+		const {
+			invalidSemester,
+			wrongSemester,
+			studentExists,
+			studentIsActive,
+			studentCanSelect,
+			disciplineExists,
+			exceededCreditsMax,
+			currentCredits,
+		} = await studentService
+			.selectDiscipline(
+				userId,
+				disciplineIds,
+				semester as '1' | '2',
+			);
+
+		if (invalidSemester) {
+			return c.json({ message: `Invalid semester. Semester should be '1' or '2'.` }, 400);
+		}
+
+		if (wrongSemester) {
+			return c.json({
+				message: `Incorrect semester: the semester in some disciplines differs from the one provided by the user.`,
+			}, 400);
+		}
 
 		if (studentExists === false) {
 			return c.json({ message: `student with userId: ${userId} does not exist.` }, 400);
@@ -203,16 +229,29 @@ export class StudentController {
 		const token = c.req.header('authorization');
 		const userId = jwtDataGetters.getUserId(token!);
 
-		const disciplineId = Number(c.req.param('id'));
-		if (Number.isNaN(disciplineId)) {
-			return c.json({ message: 'No disciplineId was provided.' }, 400);
+		const body = await c.req.json().catch(() => {}); // Prevent crash if JSON is empty
+		if (body === undefined) {
+			return c.json({ message: 'Empty request body' }, 400);
 		}
 
-		const { studentExists, studentIsActive, studentCanSelect, disciplineExists, currentCredits } = await studentService
-			.deselectDiscipline(
-				userId,
-				disciplineId,
-			);
+		const disciplineIds = body.disciplineIds ?? [];
+
+		const semester = c.req.query('semester');
+		if (semester === undefined) {
+			return c.json({ message: 'semester is required' }, 400);
+		}
+
+		const { invalidSemester, studentExists, studentIsActive, studentCanSelect, disciplineExists, currentCredits } =
+			await studentService
+				.deselectDiscipline(
+					userId,
+					disciplineIds,
+					semester as '1' | '2',
+				);
+
+		if (invalidSemester) {
+			return c.json({ message: `Invalid semester. Semester should be '1' or '2'.` }, 400);
+		}
 
 		if (studentExists === false) {
 			return c.json({ message: `student with userId: ${userId} does not exist.` }, 400);
