@@ -62,6 +62,16 @@ export class StudentService {
 			studentId: student.id,
 		});
 
+		// helper for situation when student selects multiple disciplines
+		const currentCredits = selectedDisciplines.reduce((acc, discipline) => {
+			return acc + discipline.credits;
+		}, 0);
+
+		const fieldsToChange = semester === '1'
+			? { semester1Credits: currentCredits }
+			: { semester2Credits: currentCredits };
+		await studentRep.editStudentById(student.id, fieldsToChange);
+
 		return {
 			studentExists: true,
 			studentIsActive: true,
@@ -69,7 +79,7 @@ export class StudentService {
 			selectedDisciplines,
 			minimumCredits: semester === '1' ? student.semester1MinCredits : student.semester2MinCredits,
 			maximumCredits: semester === '1' ? student.semester1MaxCredits : student.semester2MaxCredits,
-			currentCredits: semester === '1' ? student.semester1Credits : student.semester2Credits,
+			currentCredits,
 		};
 	};
 
