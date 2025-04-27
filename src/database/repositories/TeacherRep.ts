@@ -101,10 +101,10 @@ export class TeacherRep {
 		}
 
 		if (eqList.length !== 0) {
-			return await query.where(and(...eqList));
+			return await query.where(and(...eqList)).orderBy(teachers.id);
 		}
 
-		return await query;
+		return await query.orderBy(teachers.id);
 	};
 
 	addTeacher = async (teacher: {

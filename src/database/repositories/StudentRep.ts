@@ -111,10 +111,10 @@ export class StudentRep {
 		}
 
 		if (eqList.length !== 0) {
-			return await query.where(and(...eqList));
+			return await query.where(and(...eqList)).orderBy(students.id);
 		}
 
-		return await query;
+		return await query.orderBy(students.id);
 	};
 
 	addStudent = async (student: {

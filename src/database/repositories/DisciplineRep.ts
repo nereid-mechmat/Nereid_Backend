@@ -15,7 +15,7 @@ export class DisciplineRep {
 	}
 
 	getAllDisciplines = async () => {
-		const allDisciplines = await this.db.select().from(disciplines);
+		const allDisciplines = await this.db.select().from(disciplines).orderBy(disciplines.id);
 		return allDisciplines;
 	};
 
