@@ -60,7 +60,7 @@ export class AdminService {
 		}
 
 		const headers = csv.slice(0, endlineIdx);
-		if (headers !== 'lastName,firstName,patronymic,email,educationalProgram,course,year') {
+		if (headers.startsWith('lastName,firstName,patronymic,email,educationalProgram,course,year')) {
 			return { invalidCsv: true };
 		}
 
