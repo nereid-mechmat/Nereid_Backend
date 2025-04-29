@@ -471,8 +471,9 @@ export class AdminService {
 
 		let csv: string = '';
 		for (const disciplineStudents of studentsForAllDisciplines) {
-			csv += `${disciplineStudents.disciplineName},semester:${disciplineStudents.disciplineSemester}\n`;
-			csv += parser.parse(disciplineStudents.students);
+			csv +=
+				`${disciplineStudents.disciplineName},semester:${disciplineStudents.disciplineSemester},studentsCount:${disciplineStudents.students.length}\n`;
+			if (disciplineStudents.students.length !== 0) csv += parser.parse(disciplineStudents.students);
 
 			// const studentKeysCount = Object.keys(disciplineStudents.students[0]! ?? {}).length;
 			// const comasCount = studentKeysCount === 0 ? studentKeysCount : studentKeysCount - 1;
