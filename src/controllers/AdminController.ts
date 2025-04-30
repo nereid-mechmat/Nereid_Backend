@@ -121,10 +121,8 @@ export class AdminController {
 			canSelect,
 			semester1MinCredits,
 			semester1MaxCredits,
-			semester1Credits,
 			semester2MinCredits,
 			semester2MaxCredits,
-			semester2Credits,
 		} = body;
 
 		const { studentExists } = await adminService.editStudent({
@@ -140,10 +138,8 @@ export class AdminController {
 			canSelect,
 			semester1MinCredits,
 			semester1MaxCredits,
-			semester1Credits,
 			semester2MinCredits,
 			semester2MaxCredits,
-			semester2Credits,
 		});
 
 		if (studentExists === false) {
@@ -168,10 +164,8 @@ export class AdminController {
 			canSelect,
 			semester1MinCredits,
 			semester1MaxCredits,
-			semester1Credits,
 			semester2MinCredits,
 			semester2MaxCredits,
-			semester2Credits,
 		} = body;
 
 		if (!Array.isArray(studentIds)) {
@@ -189,10 +183,8 @@ export class AdminController {
 			canSelect,
 			semester1MinCredits,
 			semester1MaxCredits,
-			semester1Credits,
 			semester2MinCredits,
 			semester2MaxCredits,
-			semester2Credits,
 		});
 
 		if (studentExists === false) {
