@@ -160,7 +160,7 @@ export class StudentService {
 			return { studentCanSelect: false };
 		}
 
-		const studentMaxCredits = semester === '1' ? student.semester1MaxCredits : student.semester2MaxCredits;
+		// const studentMaxCredits = semester === '1' ? student.semester1MaxCredits : student.semester2MaxCredits;
 		const studentCurrentCredits = semester === '1' ? student.semester1Credits : student.semester2Credits;
 
 		const promises = disciplineIds.map(async (disciplineId) => await disciplineRep.getDisciplineById(disciplineId));
@@ -177,11 +177,11 @@ export class StudentService {
 		}
 
 		const creditsToAdd = filteredDisciplines.reduce((acc, discipline) => acc + discipline.credits, 0);
-		if (
-			studentCurrentCredits + creditsToAdd > studentMaxCredits
-		) {
-			return { exceededCreditsMax: true };
-		}
+		// if (
+		// 	studentCurrentCredits + creditsToAdd > studentMaxCredits
+		// ) {
+		// 	return { exceededCreditsMax: true };
+		// }
 
 		const promises_ = filteredDisciplines.map(async (discipline) =>
 			await studentDisciplineRelationRep.addDisciplineToStudent(student.id, discipline.id)
