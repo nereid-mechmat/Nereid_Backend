@@ -49,11 +49,19 @@ adminRouter.patch(
 	adminValidation,
 	adminController.unlockDisciplineSelection,
 );
+
+// reports
 adminRouter.get(
 	'/get-students-for-all-disciplines',
 	authenticate,
 	adminValidation,
 	adminController.getStudentsForAllDisciplines,
+);
+adminRouter.get(
+	'/get-disciplines-for-all-students',
+	authenticate,
+	adminValidation,
+	adminController.getDisciplinesForAllStudents,
 );
 
 adminRouter.patch(

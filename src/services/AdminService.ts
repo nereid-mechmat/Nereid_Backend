@@ -487,6 +487,51 @@ export class AdminService {
 		};
 	};
 
+	getDisciplinesForAllStudents = async (semester: '1' | '2') => {
+		if (!['1', '2'].includes(semester)) {
+			return { invalidSemester: true };
+		}
+
+		const allStudents = await studentRep.getAllStudents({ isActive: true });
+		const promises: ReturnType<typeof studentDisciplineRelationRep.getDisciplinesByStudent>[] = [];
+
+		for (const student of allStudents) {
+			promises.push(studentDisciplineRelationRep.getDisciplinesByStudent(student.id, semester));
+		}
+
+		const resolvedPromises = await Promise.all(promises);
+		const disciplinesForAllStudents = resolvedPromises.map((disciplineList, idx) => ({
+			lastName: allStudents[idx]?.lastName,
+			firstName: allStudents[idx]?.firstName,
+			patronymic: allStudents[idx]?.patronymic,
+			email: allStudents[idx]?.email,
+			educationalProgram: allStudents[idx]?.educationalProgram,
+			course: allStudents[idx]?.course,
+			year: allStudents[idx]?.year,
+			disciplines: disciplineList,
+		}));
+
+		const parser = new Parser({ includeEmptyRows: true });
+
+		let csv: string = '';
+		for (const studentDisciplines of disciplinesForAllStudents) {
+			csv +=
+				`${studentDisciplines.lastName},${studentDisciplines.firstName},${studentDisciplines.patronymic},${studentDisciplines.email},`
+				+ `${studentDisciplines.educationalProgram},${studentDisciplines.course},${studentDisciplines.year}\n`;
+			if (studentDisciplines.disciplines.length !== 0) csv += parser.parse(studentDisciplines.disciplines);
+
+			// const studentKeysCount = Object.keys(disciplineStudents.students[0]! ?? {}).length;
+			// const comasCount = studentKeysCount === 0 ? studentKeysCount : studentKeysCount - 1;
+			// csv += '\n' + `,`.repeat(comasCount) + '\n';
+			csv += '\n\n';
+		}
+
+		return {
+			invalidSemester: false,
+			csv,
+		};
+	};
+
 	// method to help seeding database with test data
 	recalculateStudentsCredits = async () => {
 		const allStudents = await studentRep.getAllStudents();

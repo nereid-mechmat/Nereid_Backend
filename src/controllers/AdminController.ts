@@ -404,6 +404,24 @@ export class AdminController {
 		return c.text(csv ?? '');
 	};
 
+	getDisciplinesForAllStudents = async (c: Context) => {
+		const semester = c.req.query('semester');
+		if (semester === undefined) {
+			return c.json({ message: 'semester is required' }, 400);
+		}
+
+		const { csv, invalidSemester } = await adminService.getDisciplinesForAllStudents(semester as '1' | '2');
+
+		if (invalidSemester) {
+			return c.json({ message: `Invalid semester. Semester should be '1' or '2'.` }, 400);
+		}
+
+		c.header('Content-Type', 'text/csv');
+		c.header('Content-Disposition', `attachment; filename="disciplines-for-all-students-semester-${semester}.csv"`);
+
+		return c.text(csv ?? '');
+	};
+
 	recalculateStudentsCredits = async (c: Context) => {
 		await adminService.recalculateStudentsCredits();
 
